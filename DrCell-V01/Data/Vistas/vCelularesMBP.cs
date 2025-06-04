@@ -2,7 +2,7 @@
 {
     public class vCelularesMBP
     {
-        public int celularId { get; set; }
+        public int id { get; set; }
         public string modelo { get; set; }
         public string marca { get; set; }
         public decimal? arreglomodulo { get; set; }

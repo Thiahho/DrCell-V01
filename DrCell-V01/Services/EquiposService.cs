@@ -61,7 +61,7 @@ namespace DrCell_V01.Services
                     m.arreglomodulo,
                     m.arreglobateria,
                     m.arreglopin,
-                    m.celularId
+                    m.id
                 }).Cast<object>()
                 .ToListAsync();
         }
