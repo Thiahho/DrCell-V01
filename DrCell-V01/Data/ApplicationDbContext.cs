@@ -1,13 +1,11 @@
 ﻿using DrCell_V01.Data.Modelos;
 using DrCell_V01.Data.Vistas;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Net.NetworkInformation;
 
 namespace DrCell_V01.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<Usuario, IdentityRole<int>, int>
+    public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
              : base(options) { }
@@ -16,7 +14,10 @@ namespace DrCell_V01.Data
         public DbSet<Modulos> Modulos { get; set; }
         public DbSet<Baterias> Baterias { get; set; }
         public DbSet<Pines> Pines { get; set; }
-        ///VISTAS
+        public DbSet<Usuario> Usuarios { get; set; }
+        //public DbSet<Auth> Auth { get; set; }
+
+        /// VISTAS
         public DbSet<vCelularesMBP> vCelularesMBP => Set<vCelularesMBP>();
         public DbSet<vCelularM> vCelularM => Set<vCelularM>();
         public DbSet<vCelularB> vCelularB => Set<vCelularB>();
@@ -25,6 +26,9 @@ namespace DrCell_V01.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Usuario>()
+                .ToTable("usuarios")
+                .HasKey(x => x.Id);
             modelBuilder.Entity<Celular>()
                 .ToTable("celulares")
                 .HasKey(e => e.id);
@@ -42,7 +46,6 @@ namespace DrCell_V01.Data
             modelBuilder.Entity<vCelularM>().HasNoKey().ToView("vcelularm");
             modelBuilder.Entity<vCelularB>().HasNoKey().ToView("vcelularb");
             modelBuilder.Entity<vCelularP>().HasNoKey().ToView("vcelularp");
-
         }
     }
 }

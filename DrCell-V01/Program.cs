@@ -1,48 +1,41 @@
 using DrCell_V01.Data;
 using DrCell_V01.Data.Modelos;
+using DrCell_V01.Services;
+using DrCell_V01.Services.Interface;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.AspNetCore.Identity;  // <<<<<< Este es clave para AddEntityFrameworkStores
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configura DbContext
+// 1. Configura DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configura Identity ANTES de builder.Build()
-builder.Services.AddIdentity<Usuario, IdentityRole<int>>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
-
-// Configura Authentication y Authorization
-builder.Services
-    .AddAuthentication(options =>
+// 2. JWT Authentication (sin Identity)
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        options.SaveToken = true;
-        options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters = new TokenValidationParameters()
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration["JWTKey:ValidAudience"],
-            ValidIssuer = builder.Configuration["JWTKey:ValidIssuer"],
-            ClockSkew = TimeSpan.Zero,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["JWTKey:Secret"])
-            )
-        };
-    });
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidIssuer = builder.Configuration["JWTKey:ValidIssuer"],
+        ValidAudience = builder.Configuration["JWTKey:ValidAudience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWTKey:Secret"]))
+    };
+});
 
 builder.Services.AddAuthorization();
+builder.Services.AddControllersWithViews();
+builder.Services.AddCors(policy =>
+    policy.AddDefaultPolicy(p =>
+        p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
 builder.Services.AddSession(options =>
 {
@@ -51,26 +44,15 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-builder.Services.AddCors(service =>
-    service.AddDefaultPolicy(policy =>
-    {
-        policy.AllowAnyHeader();
-        policy.AllowAnyMethod();
-        policy.AllowAnyOrigin();
-    }));
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<ICelularesService, EquiposService>();
 
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireLowercase = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequireDigit = false;
-    options.Password.RequiredLength = 6;
-});
+// Aquí agregas tus servicios propios para manejar usuarios y roles
+// Ejemplo:
+// builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+// builder.Services.AddScoped<IRolService, RolService>();
 
-// Finalmente build
 var app = builder.Build();
 
 app.UseSession();
@@ -94,21 +76,7 @@ app.MapControllerRoute(
 
 app.MapControllers();
 
-// Crear roles en startup (usa IdentityRole<int>)
-using (var scope = app.Services.CreateScope())
-{
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
-
-    var roles = new[] { "Admin" };
-
-    foreach (var role in roles)
-    {
-        if (!await roleManager.RoleExistsAsync(role))
-        {
-            await roleManager.CreateAsync(new IdentityRole<int>(role));
-        }
-    }
-}
+// No uses RoleManager porque no estás usando Identity
+// La creación de roles la harás con tu propia lógica, no aquí.
 
 app.Run();
-

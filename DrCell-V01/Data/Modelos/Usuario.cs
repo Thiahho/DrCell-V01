@@ -1,13 +1,18 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿    using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DrCell_V01.Data.Modelos
-{
-    public class Usuario : IdentityUser<int>
+    {
+    public class Usuario
     {
         public int Id { get; set; }
-        public string Nombre { get; set; } = string.Empty;
+
         public string Email { get; set; } = string.Empty;
+
         public string ClaveHash { get; set; } = string.Empty;
+
         public string Rol { get; set; } = "Admin";
     }
+
 }
+
