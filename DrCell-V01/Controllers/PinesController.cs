@@ -1,4 +1,5 @@
 ﻿using DrCell_V01.Data;
+using DrCell_V01.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,9 +10,11 @@ namespace DrCell_V01.Controllers
     public class PinesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        public PinesController(ApplicationDbContext context)
+        private readonly IPinesService _pinesService;
+        public PinesController(ApplicationDbContext context, IPinesService pinesService)
         {
             _context = context;
+            _pinesService = pinesService;
         }
 
         [HttpGet]
@@ -19,16 +22,7 @@ namespace DrCell_V01.Controllers
         {
             try
             {
-                var pines= await _context.Pines.
-                    Select(b => new
-                    {
-                        b.id,
-                        b.marca,
-                        b.modelo,
-                        b.costo,
-                        b.arreglo
-
-                    }).ToListAsync();
+                var pines= await _pinesService.ObtenerPinesAsync();
                 return Ok(pines);
             }
             catch (Exception ex)
@@ -36,17 +30,12 @@ namespace DrCell_V01.Controllers
                 return BadRequest(new { message = "Error al obtener los pines", error = ex.Message });
             }
         }
-        [HttpGet("marca")]
-        public async Task<IActionResult> GetPinesByMarca()
+        [HttpGet("marca/{marca}")]
+        public async Task<IActionResult> GetPinesByMarca(string marca)
         {
             try
             {
-                var marcas = await _context.Pines.
-                    Select(m => new
-                    {
-                        m.id,
-                        m.marca,
-                    }).ToListAsync();
+                var marcas = await _pinesService.ObtenerPinesByMarcaAsync(marca);
                 return Ok(marcas);
             }
             catch (Exception ex)
@@ -59,12 +48,7 @@ namespace DrCell_V01.Controllers
         {
             try
             {
-                var pines= await _context.Pines.
-                    Select(b => new
-                    {
-                        b.id,
-                        b.modelo,
-                    }).ToListAsync();
+                var pines= await _pinesService.ObtenerPinesByModeloAsync();
                 return Ok(pines);
             }
             catch (Exception ex)
@@ -77,14 +61,7 @@ namespace DrCell_V01.Controllers
         {
             try
             {
-                var pines = await _context.vCelularP
-                    .Where(c => EF.Functions.ILike(c.marca, marca) &&
-                                EF.Functions.ILike(c.modelo, modelo))
-                     .Select(m => new {
-                         m.marca,
-                         m.modelo,
-                         m.arreglopin
-                     }).ToListAsync();
+                var pines = await _pinesService.ObtenerPinesByModeloYMarcaAsync(marca, modelo);
 
                 return Ok(pines);
             }

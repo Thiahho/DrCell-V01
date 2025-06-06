@@ -10,11 +10,11 @@ namespace DrCell_V01.Controllers
     public class ModulosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly ICelularesService _celularesService;
-        public ModulosController(ApplicationDbContext context, ICelularesService celularesService)
+        private readonly IModulosService _modulosService;
+        public ModulosController(ApplicationDbContext context, IModulosService modulosService)
         {
             _context = context;
-            _celularesService = celularesService;
+            _modulosService = modulosService;
         }
 
         [HttpGet]
@@ -22,18 +22,7 @@ namespace DrCell_V01.Controllers
         {
             try
             {
-                var modulos= await _context.Modulos.
-                    Select(m => new
-                    {
-                        m.marca,
-                        m.modelo,
-                        m.costo,
-                        m.arreglo,
-                        m.color,
-                        m.marco,
-                        m.version
-
-                    }).ToListAsync();
+                var modulos = await _modulosService.ObtenerModulosAsync();
                 return Ok(modulos);
             }
             catch (Exception ex)
@@ -41,24 +30,48 @@ namespace DrCell_V01.Controllers
                 return BadRequest(new { message = "Error al obtener los modulos", error = ex.Message });
             }
         }
-        [HttpGet]
-        public async Task<IActionResult> GetCelulares()
-        => Ok(await _celularesService.ObtenerEquiposUnicosAsync());
 
-        [HttpGet("marcas")]
-        public async Task<IActionResult> GetMarcas()
-            => Ok(await _celularesService.ObtenerMarcasAsync());
+        [HttpGet("marca/{marca}")]
+        public async Task<IActionResult> GetModulosByMarca(string marca)
+        {
+            try
+            {
+                var marcas = await _modulosService.ObtenerModulosByMarcaAsync(marca);
+                return Ok(marcas);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error al obtemer las marcas de los modulos" });
+            }
+        }
+        [HttpGet("modelo/{modelo}")]
+        public async Task<IActionResult> GetModulosByModelo(string modelo)
+        {
+            try
+            {
+                var modelos= await _modulosService.ObtenerModulosByModeloAsync(modelo);
+                return Ok(modelos);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error al obtener los modulos", error = ex.Message });
+            }
+        }
 
-        [HttpGet("modelos")]
-        public async Task<IActionResult> GetModelos()
-            => Ok(await _celularesService.ObtenerModelosAsync());
-
-        [HttpGet("modelos/{marca}")]
-        public async Task<IActionResult> GetModelosPorMarca(string marca)
-            => Ok(await _celularesService.ObtenerModelosPorMarcaAsync(marca));
-
-        [HttpGet("info/{marca}/{modelo}")]
+        [HttpGet("Solo-Modulos/{marca}/{modelo}")]
         public async Task<IActionResult> GetModulosByModelo(string marca, string modelo)
-            => Ok(await _celularesService.ObtenerInfoPorMarcaYModeloAsync(marca, modelo));
+        {
+            try
+            {
+                var modulos = await _modulosService.ObtenerModulosByModeloYMarcaAsync(marca, modelo);
+                return Ok(modulos);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error al obtener los modulos por marca y modelo", error = ex.Message });
+            }
+
+        }
+
     }
 }

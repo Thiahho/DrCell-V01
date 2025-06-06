@@ -47,6 +47,9 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ICelularesService, EquiposService>();
+builder.Services.AddScoped<IPinesService, PinesService>();
+builder.Services.AddScoped<IModulosService, ModulosService>();
+builder.Services.AddScoped<IBateriasService, BateriasService>();
 
 // Aquí agregas tus servicios propios para manejar usuarios y roles
 // Ejemplo:

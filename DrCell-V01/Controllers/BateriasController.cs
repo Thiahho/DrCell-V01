@@ -1,4 +1,5 @@
 ﻿using DrCell_V01.Data;
+using DrCell_V01.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,9 +10,11 @@ namespace DrCell_V01.Controllers
     public class BateriasController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        public BateriasController(ApplicationDbContext context)
+        private readonly IBateriasService _bateriasService;
+        public BateriasController(ApplicationDbContext context, IBateriasService bateriasService)
         {
             _context = context;
+            _bateriasService = bateriasService;
         }
 
         [HttpGet]
@@ -19,16 +22,7 @@ namespace DrCell_V01.Controllers
         {
             try
             {
-                var baterias= await _context.Baterias.
-                    Select(b => new
-                    {
-                        b.id,
-                        b.marca,
-                        b.modelo,
-                        b.costo,
-                        b.arreglo
-
-                    }).ToListAsync();
+                var baterias= await _bateriasService.ObtenerBateriasAsync();
                 return Ok(baterias);
             }
             catch (Exception ex)
@@ -36,17 +30,12 @@ namespace DrCell_V01.Controllers
                 return BadRequest(new { message = "Error al obtener las baterias", error = ex.Message });
             }
         }
-        [HttpGet("marca")]
-        public async Task<IActionResult> GetBateriasByMarca()
+        [HttpGet("marca/{marca}")]
+        public async Task<IActionResult> GetBateriasByMarca(string marca)
         {
             try
             {
-                var marcas = await _context.Baterias.
-                    Select(m => new
-                    {
-                        m.id,
-                        m.marca,
-                    }).ToListAsync();
+                var marcas = await _bateriasService.ObtenerBateriasByMarcaAsync(marca);
                 return Ok(marcas);
             }
             catch (Exception ex)
@@ -59,12 +48,7 @@ namespace DrCell_V01.Controllers
         {
             try
             {
-                var baterias= await _context.Baterias.
-                    Select(b => new
-                    {
-                        b.id,
-                        b.modelo,
-                    }).ToListAsync();
+                var baterias = await _bateriasService.ObtenerBateriasByModeloAsync();
                 return Ok(baterias);
             }
             catch (Exception ex)
@@ -77,15 +61,7 @@ namespace DrCell_V01.Controllers
         {
             try
             {
-                var modulo = await _context.vCelularB
-                    .Where(c => EF.Functions.ILike(c.marca, marca) &&
-                                EF.Functions.ILike(c.modelo, modelo))
-                     .Select(m => new {
-                         m.marca,
-                         m.modelo,
-                         m.tipo,
-                         m.arreglobateria
-                     }).ToListAsync();
+                var modulo = await _bateriasService.ObtenerBateriasByModeloYMarcaAsync(marca, modelo);
 
                 return Ok(modulo);
             }

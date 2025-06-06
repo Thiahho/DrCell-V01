@@ -81,24 +81,81 @@ namespace DrCell_V01.Controllers
 
         // ============================= ENDPOINTS PROTEGIDOS =============================
 
+
         [HttpGet]
         public async Task<IActionResult> GetCelulares()
-       => Ok(await _celularesService.ObtenerEquiposUnicosAsync());
+        {
+            try
+            {
+                var celulares = await _celularesService.ObtenerEquiposUnicosAsync();
+                return Ok(celulares);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error al obtener los celulares", error = ex.Message });
+            }
+        }   
 
         [HttpGet("marcas")]
         public async Task<IActionResult> GetMarcas()
-            => Ok(await _celularesService.ObtenerMarcasAsync());
+        {
+            try
+            {
+                var marcas = await _celularesService.ObtenerMarcasAsync();
+                return Ok(marcas);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error al obtener las marcas", error = ex.Message });
+            }
+        }
 
         [HttpGet("modelos")]
         public async Task<IActionResult> GetModelos()
-            => Ok(await _celularesService.ObtenerModelosAsync());
+        {
+            try
+            {
+                var modelos = await _celularesService.ObtenerModelosAsync();
+                return Ok(modelos);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error al obtener los modelos", error = ex.Message });
+            }
+        }
 
         [HttpGet("modelos/{marca}")]
         public async Task<IActionResult> GetModelosPorMarca(string marca)
-            => Ok(await _celularesService.ObtenerModelosPorMarcaAsync(marca));
+        {
+            try
+            {
+                var marcas = await _celularesService.ObtenerModelosPorMarcaAsync(marca);
+                return Ok(marcas);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error al obtener los modelos por marca", error = ex.Message });
+            }
+
+        }
 
         [HttpGet("info/{marca}/{modelo}")]
         public async Task<IActionResult> GetModulosByModelo(string marca, string modelo)
-            => Ok(await _celularesService.ObtenerInfoPorMarcaYModeloAsync(marca, modelo));
+        {
+            try
+            {
+                var info = await _celularesService.ObtenerInfoPorMarcaYModeloAsync(marca, modelo);
+                if (info == null || !info.Any())
+                {
+                    return NotFound(new { message = "No se encontraron resultados para la marca y modelo especificados." });
+                }
+                return Ok(info);
+            }
+            catch
+            {
+                return BadRequest(new { message = "Error al obtener la información por marca y modelo." });
+            }
+        }
+        
     }
 }

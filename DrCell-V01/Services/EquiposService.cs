@@ -66,19 +66,6 @@ namespace DrCell_V01.Services
                 .ToListAsync();
         }
 
-        public Task<Celular> GetEquiposAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Celular> GetMarcaEquiposAsync(int id, string marca)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Celular> GetModelosEquiposAsync(int id, string modelo)
-        {
-            throw new NotImplementedException();
-        }
+       
     }
 }
