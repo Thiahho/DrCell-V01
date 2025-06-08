@@ -61,6 +61,10 @@ namespace DrCell_V01.Services
                     m.arreglomodulo,
                     m.arreglobateria,
                     m.arreglopin,
+                    m.colormodulo,
+                    m.tipo,
+                    m.marco,
+                    m.version,
                     m.id
                 }).Cast<object>()
                 .ToListAsync();
