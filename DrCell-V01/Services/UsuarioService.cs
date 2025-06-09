@@ -70,7 +70,100 @@ namespace DrCell_V01.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        
+        public async Task ActualizarProductoAsync(Productos producto, int id)
+        {
+            var modelo = await _context.Productos.FindAsync(id);
+            if (modelo != null)
+            {
+                modelo.Marca= producto.Marca;
+                modelo.Modelo = producto.Modelo;
+                modelo.Categoria = producto.Categoria;
+                modelo.Img= producto.Img;
+                _context.Productos.Update(modelo);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                throw new KeyNotFoundException("Producto no encontrado.");
+            }
+        }
+
+        public async Task CrearProductoAsync(Productos producto)
+        {
+            if(producto == null)
+            {
+                throw new ArgumentNullException(nameof(producto), "El producto no puede ser nulo.");
+            }
+            var modelo = new Productos
+            {
+                Marca = producto.Marca,
+                Modelo = producto.Modelo,
+                Categoria = producto.Categoria,
+                Img = producto.Img
+            };
+
+            await _context.Productos.AddAsync(modelo);
+            await _context.SaveChangesAsync();
+
+            foreach (var variante in producto.Variantes)
+            {
+                var variant= new ProductosVariantes
+                {
+                    ProductoId = modelo.Id,
+                    Ram = variante.Ram,
+                    Almacenamiento = variante.Almacenamiento,
+                    Color = variante.Color,
+                    Precio = variante.Precio,
+                    Stock = variante.Stock
+                };
+                await _context.ProductosVariantes.AddAsync(variant);
+            }
+        }
+
+        public Task EliminarProducto(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Productos> ObtenerByIdAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<Productos>> ObtenerTodosProductosAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CrearVarianteAsync(ProductosVariantes productosVariantes)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ActualizarVarianteAsync(ProductosVariantes productosVariantes, int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task EliminarVarianteProducto(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ProductosVariantes> ObtenerVarianteByIdAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<ProductosVariantes>> ObtenerVariantePorModeloAsync(int idproducto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<ProductosVariantes>> ObtenerAllVariantesAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

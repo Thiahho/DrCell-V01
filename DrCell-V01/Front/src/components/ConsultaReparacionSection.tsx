@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -6,8 +6,7 @@ import {
   TextField,
   Button,
   Paper,
-  MenuItem,
-  InputAdornment
+  MenuItem
 } from '@mui/material';
 import axios from 'axios';
 
@@ -15,19 +14,29 @@ interface ReparacionInfo {
   arreglomodulo?: number;
   arreglobateria?: number;
   arreglopin?: number;
+  colormodulo?: string;
+  tipo?: string;
+  marco?: boolean;
+  version?: string;
+  id?: number;
+  marca?: string;
+  modelo?: string;
 }
 
-const API_URL = 'http://localhost:5015'; // Cambia esto si tu backend usa otro puerto
+const API_URL = 'http://localhost:5015';
 
 const ConsultaReparacionSection: React.FC = () => {
   const [marcas, setMarcas] = useState<string[]>([]);
   const [modelos, setModelos] = useState<string[]>([]);
   const [marca, setMarca] = useState('');
   const [modelo, setModelo] = useState('');
+  const [variantes, setVariantes] = useState<ReparacionInfo[]>([]);
+  const [color, setColor] = useState('');
+  const [marco, setMarco] = useState('');
+  const [version, setVersion] = useState('');
+  const [tipo, setTipo] = useState('');
+  const [varianteSeleccionada, setVarianteSeleccionada] = useState<ReparacionInfo | null>(null);
   const [precio, setPrecio] = useState('');
-  const [modulo, setModulo] = useState('');
-  const [pin, setPin] = useState('');
-  const [info, setInfo] = useState<ReparacionInfo | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Obtener marcas reales
@@ -40,7 +49,12 @@ const ConsultaReparacionSection: React.FC = () => {
   // Obtener modelos según marca
   useEffect(() => {
     setModelo('');
-    setInfo(null);
+    setVariantes([]);
+    setColor('');
+    setMarco('');
+    setVersion('');
+    setTipo('');
+    setVarianteSeleccionada(null);
     setPrecio('');
     if (marca) {
       axios.get(`${API_URL}/celulares/modelos/${marca}`)
@@ -51,35 +65,113 @@ const ConsultaReparacionSection: React.FC = () => {
     }
   }, [marca]);
 
-  // Obtener info de reparación (precios) según marca y modelo
+  // Obtener variantes según marca y modelo
   useEffect(() => {
-    setInfo(null);
+    setVariantes([]);
+    setColor('');
+    setMarco('');
+    setVersion('');
+    setTipo('');
+    setVarianteSeleccionada(null);
     setPrecio('');
     if (marca && modelo) {
       setLoading(true);
       axios.get(`${API_URL}/celulares/info/${marca}/${modelo}`)
         .then(res => {
-          const data = res.data[0];
-          setInfo(data);
-          // Mostrar el precio más relevante
-          if (data) {
-            let precioStr = '';
-            if (data.arreglomodulo) precioStr += `Módulo: $${data.arreglomodulo}  `;
-            if (data.arreglobateria) precioStr += `Batería: $${data.arreglobateria}  `;
-            if (data.arreglopin) precioStr += `Pin: $${data.arreglopin}`;
-            setPrecio(precioStr.trim());
-          } else {
-            setPrecio('No disponible');
-          }
+          const data: ReparacionInfo[] = res.data;
+          setVariantes(data);
         })
-        .catch(() => setPrecio('No disponible'))
+        .catch(() => setVariantes([]))
         .finally(() => setLoading(false));
     }
   }, [marca, modelo]);
 
+  // Opciones únicas para cada campo, filtradas según las selecciones actuales
+  const coloresDisponibles = useMemo(() => {
+    const set = new Set(
+      variantes
+        .filter(v =>
+          (!marco || (v.marco ? 'Con marco' : 'Sin marco') === marco) &&
+          (!version || v.version === version) &&
+          (!tipo || v.tipo === tipo)
+        )
+        .map(v => v.colormodulo)
+        .filter(Boolean)
+    );
+    return Array.from(set) as string[];
+  }, [variantes, marco, version, tipo]);
+
+  const marcosDisponibles = useMemo(() => {
+    const set = new Set(
+      variantes
+        .filter(v =>
+          (!color || v.colormodulo === color) &&
+          (!version || v.version === version) &&
+          (!tipo || v.tipo === tipo)
+        )
+        .map(v => (v.marco ? 'Con marco' : 'Sin marco'))
+    );
+    return Array.from(set) as string[];
+  }, [variantes, color, version, tipo]);
+
+  const versionesDisponibles = useMemo(() => {
+    const set = new Set(
+      variantes
+        .filter(v =>
+          (!color || v.colormodulo === color) &&
+          (!marco || (v.marco ? 'Con marco' : 'Sin marco') === marco) &&
+          (!tipo || v.tipo === tipo)
+        )
+        .map(v => v.version)
+        .filter(Boolean)
+    );
+    return Array.from(set) as string[];
+  }, [variantes, color, marco, tipo]);
+
+  const tiposDisponibles = useMemo(() => {
+    const set = new Set(
+      variantes
+        .filter(v =>
+          (!color || v.colormodulo === color) &&
+          (!marco || (v.marco ? 'Con marco' : 'Sin marco') === marco) &&
+          (!version || v.version === version)
+        )
+        .map(v => v.tipo)
+        .filter(Boolean)
+    );
+    return Array.from(set) as string[];
+  }, [variantes, color, marco, version]);
+
+  // Buscar la variante exacta
+  useEffect(() => {
+    if (!color && coloresDisponibles.length > 0) return setVarianteSeleccionada(null);
+    if (!marco && marcosDisponibles.length > 0) return setVarianteSeleccionada(null);
+    if (!version && versionesDisponibles.length > 0) return setVarianteSeleccionada(null);
+    if (!tipo && tiposDisponibles.length > 0) return setVarianteSeleccionada(null);
+    const variante = variantes.find(v =>
+      (coloresDisponibles.length === 0 || v.colormodulo === color) &&
+      (marcosDisponibles.length === 0 || (v.marco ? 'Con marco' : 'Sin marco') === marco) &&
+      (versionesDisponibles.length === 0 || v.version === version) &&
+      (tiposDisponibles.length === 0 || v.tipo === tipo)
+    );
+    setVarianteSeleccionada(variante || null);
+  }, [color, marco, version, tipo, variantes, coloresDisponibles, marcosDisponibles, versionesDisponibles, tiposDisponibles]);
+
+  // Actualizar precio cuando cambia la variante seleccionada
+  useEffect(() => {
+    if (varianteSeleccionada) {
+      let precioStr = '';
+      if (varianteSeleccionada.arreglomodulo) precioStr += `Módulo: $${varianteSeleccionada.arreglomodulo}  `;
+      if (varianteSeleccionada.arreglobateria) precioStr += `Batería: $${varianteSeleccionada.arreglobateria}  `;
+      if (varianteSeleccionada.arreglopin) precioStr += `Pin: $${varianteSeleccionada.arreglopin}`;
+      setPrecio(precioStr.trim() || 'No disponible');
+    } else {
+      setPrecio('');
+    }
+  }, [varianteSeleccionada]);
+
   const handleConsultar = (e: React.FormEvent) => {
     e.preventDefault();
-    // Ya se consulta automáticamente al elegir marca y modelo
   };
 
   return (
@@ -119,10 +211,80 @@ const ConsultaReparacionSection: React.FC = () => {
                 ))}
               </TextField>
             </Grid>
+            {/* Selectores independientes para cada campo */}
+            {coloresDisponibles.length > 0 && (
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  select
+                  label="Color"
+                  value={color}
+                  onChange={e => setColor(e.target.value)}
+                  fullWidth
+                  required
+                >
+                  <MenuItem value="">Selecciona color</MenuItem>
+                  {coloresDisponibles.map((c, idx) => (
+                    <MenuItem key={idx} value={c}>{c}</MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+            )}
+            {marcosDisponibles.length > 0 && (
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  select
+                  label="Marco"
+                  value={marco}
+                  onChange={e => setMarco(e.target.value)}
+                  fullWidth
+                  required
+                >
+                  <MenuItem value="">Selecciona marco</MenuItem>
+                  {marcosDisponibles.map((m, idx) => (
+                    <MenuItem key={idx} value={m}>{m}</MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+            )}
+            {versionesDisponibles.length > 0 && (
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  select
+                  label="Versión"
+                  value={version}
+                  onChange={e => setVersion(e.target.value)}
+                  fullWidth
+                  required
+                >
+                  <MenuItem value="">Selecciona versión</MenuItem>
+                  {versionesDisponibles.map((v, idx) => (
+                    <MenuItem key={idx} value={v}>{v}</MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+            )}
+            {tiposDisponibles.length > 0 && (
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  select
+                  label="Tipo"
+                  value={tipo}
+                  onChange={e => setTipo(e.target.value)}
+                  fullWidth
+                  required
+                >
+                  <MenuItem value="">Selecciona tipo</MenuItem>
+                  {tiposDisponibles.map((t, idx) => (
+                    <MenuItem key={idx} value={t}>{t}</MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+            )}
+            {/* Mostrar detalles de la variante seleccionada */}
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Módulo"
-                value={info?.arreglomodulo ? `$${info.arreglomodulo}` : ''}
+                value={varianteSeleccionada?.arreglomodulo ? `$${varianteSeleccionada.arreglomodulo}` : ''}
                 InputProps={{ readOnly: true }}
                 fullWidth
               />
@@ -130,7 +292,7 @@ const ConsultaReparacionSection: React.FC = () => {
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Pin de carga"
-                value={info?.arreglopin ? `$${info.arreglopin}` : ''}
+                value={varianteSeleccionada?.arreglopin ? `$${varianteSeleccionada.arreglopin}` : ''}
                 InputProps={{ readOnly: true }}
                 fullWidth
               />
@@ -138,11 +300,51 @@ const ConsultaReparacionSection: React.FC = () => {
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Batería"
-                value={info?.arreglobateria ? `$${info.arreglobateria}` : ''}
+                value={varianteSeleccionada?.arreglobateria ? `$${varianteSeleccionada.arreglobateria}` : ''}
                 InputProps={{ readOnly: true }}
                 fullWidth
               />
             </Grid>
+            {/*{varianteSeleccionada?.colormodulo && (
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Color del módulo"
+                  value={varianteSeleccionada.colormodulo}
+                  InputProps={{ readOnly: true }}
+                  fullWidth
+                />
+              </Grid>
+            )}*
+            {varianteSeleccionada?.tipo && (
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Tipo"
+                  value={varianteSeleccionada.tipo}
+                  InputProps={{ readOnly: true }}
+                  fullWidth
+                />
+              </Grid>
+            )}
+            {varianteSeleccionada?.marco !== undefined && (
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Marco"
+                  value={varianteSeleccionada.marco ? 'Sí' : 'No'}
+                  InputProps={{ readOnly: true }}
+                  fullWidth
+                />
+              </Grid>
+            )}*/}
+            {varianteSeleccionada?.version && (
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Versión"
+                  value={varianteSeleccionada.version}
+                  InputProps={{ readOnly: true }}
+                  fullWidth
+                />
+              </Grid>
+            )}
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Precio total"

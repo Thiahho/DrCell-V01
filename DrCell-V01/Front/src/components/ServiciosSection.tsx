@@ -8,17 +8,17 @@ const servicios = [
   {
     titulo: 'Módulos',
     icono: <BuildIcon sx={{ fontSize: 50, color: '#17436b' }} />,
-    descripcion: 'Reparación y cambio de pantallas y módulos.'
+    descripcion: 'Reparación y cambio de pantallas y módulos en 3 horas. Garantía de 15 días.'
   },
   {
     titulo: 'Baterías',
     icono: <BatteryChargingFullIcon sx={{ fontSize: 50, color: '#17436b' }} />,
-    descripcion: 'Cambio de baterías originales y compatibles.'
+    descripcion: 'Cambio de baterías originales y compatibles. Garantía de 15 días.'
   },
   {
     titulo: 'Pines',
     icono: <PowerInputIcon sx={{ fontSize: 50, color: '#17436b' }} />,
-    descripcion: 'Reparación de pines de carga y conectores.'
+    descripcion: 'Reparación de pines de carga y placa. Garantía de 15 días.'
   }
 ];
 

@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import RepairQuote from './pages/RepairQuote';
+import Footer from './components/Footer';
 import './App.css';
 
 const theme = createTheme({
@@ -30,6 +31,7 @@ function App() {
             <Route path="/cotizacion" element={<RepairQuote />} />
           </Routes>
         </main>
+        <Footer />
       </div>
     </ThemeProvider>
   );

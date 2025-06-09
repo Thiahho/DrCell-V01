@@ -15,6 +15,8 @@ namespace DrCell_V01.Data
         public DbSet<Baterias> Baterias { get; set; }
         public DbSet<Pines> Pines { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Productos> Productos { get; set; }
+        public DbSet<ProductosVariantes> ProductosVariantes { get; set; }
         //public DbSet<Auth> Auth { get; set; }
 
         /// VISTAS
@@ -41,6 +43,12 @@ namespace DrCell_V01.Data
             modelBuilder.Entity<Pines>()
                 .ToTable("pines")
                 .HasKey(p => p.id);
+            modelBuilder.Entity<Productos>()
+                .ToTable("productos")
+                .HasKey(v => v.id);
+            modelBuilder.Entity<ProductosVariantes>()
+                .ToTable("productos_variantes")
+                .HasKey(v => v.id);
 
             modelBuilder.Entity<vCelularesMBP>().HasNoKey().ToView("vcelularesmbp");
             modelBuilder.Entity<vCelularM>().HasNoKey().ToView("vcelularm");

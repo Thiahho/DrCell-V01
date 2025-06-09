@@ -50,8 +50,9 @@ builder.Services.AddScoped<ICelularesService, EquiposService>();
 builder.Services.AddScoped<IPinesService, PinesService>();
 builder.Services.AddScoped<IModulosService, ModulosService>();
 builder.Services.AddScoped<IBateriasService, BateriasService>();
+builder.Services.AddScoped<IProductoService, ProductosService>();
 
-// Aquí agregas tus servicios propios para manejar usuarios y roles
+// Aquï¿½ agregas tus servicios propios para manejar usuarios y roles
 // Ejemplo:
 // builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 // builder.Services.AddScoped<IRolService, RolService>();
@@ -79,7 +80,7 @@ app.MapControllerRoute(
 
 app.MapControllers();
 
-// No uses RoleManager porque no estás usando Identity
-// La creación de roles la harás con tu propia lógica, no aquí.
+// No uses RoleManager porque no estï¿½s usando Identity
+// La creaciï¿½n de roles la harï¿½s con tu propia lï¿½gica, no aquï¿½.
 
 app.Run();
