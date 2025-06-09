@@ -88,7 +88,7 @@ namespace DrCell_V01.Services
             }
         }
 
-        public async Task CrearProductoAsync(Productos producto)
+       /* public async Task CrearProductoAsync(Productos producto)
         {
             if(producto == null)
             {
@@ -107,7 +107,7 @@ namespace DrCell_V01.Services
 
             foreach (var variante in producto.Variantes)
             {
-                var variant= new ProductosVariantes
+                var variant = new ProductosVariantes
                 {
                     ProductoId = modelo.Id,
                     Ram = variante.Ram,
@@ -118,7 +118,7 @@ namespace DrCell_V01.Services
                 };
                 await _context.ProductosVariantes.AddAsync(variant);
             }
-        }
+        }*/
 
         public Task EliminarProducto(int id)
         {

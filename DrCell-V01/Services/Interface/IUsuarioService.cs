@@ -12,7 +12,7 @@ namespace DrCell_V01.Services.Interface
         public string GenerarToken(Usuario usuario);
 
         public Task ActualizarProductoAsync(Productos producto, int id);
-        public Task CrearProductoAsync(Productos producto);
+        //public Task CrearProductoAsync(Productos producto);
 
         public Task EliminarProducto(int id);
         public Task<Productos> ObtenerByIdAsync(int id);

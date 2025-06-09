@@ -23,7 +23,7 @@ namespace DrCell_V01.Controllers
             return View(viewModel);
         }
 
-        [HttpPost]
+       /* [HttpPost]
         public IActionResult Buscar(PresupuestoConsultaViewModel modelo)
         {
             // Buscar módulos
@@ -59,7 +59,7 @@ namespace DrCell_V01.Controllers
 
             ViewBag.Marcas = _context.Celulares.Select(c => c.marca).Distinct().ToList();
             return View("Index", modelo);
-        }
+        }*/
 
         // Nueva acción para mostrar el resumen desde sesión
         [HttpGet]

@@ -45,10 +45,10 @@ namespace DrCell_V01.Data
                 .HasKey(p => p.id);
             modelBuilder.Entity<Productos>()
                 .ToTable("productos")
-                .HasKey(v => v.id);
+                .HasKey(v => v.Id);
             modelBuilder.Entity<ProductosVariantes>()
                 .ToTable("productos_variantes")
-                .HasKey(v => v.id);
+                .HasKey(v => v.Id);
 
             modelBuilder.Entity<vCelularesMBP>().HasNoKey().ToView("vcelularesmbp");
             modelBuilder.Entity<vCelularM>().HasNoKey().ToView("vcelularm");
