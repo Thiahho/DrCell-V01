@@ -9,7 +9,6 @@ namespace DrCell_V01.Services
     {
         private readonly ApplicationDbContext _context;
         public ProductosService(ApplicationDbContext applicationDbContext)
-
         {
             _context = applicationDbContext;
         }
@@ -107,6 +106,37 @@ namespace DrCell_V01.Services
         {
             _context.Entry(productos).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateVarianteAsync(ProductosVariantes variante)
+        {
+            _context.Entry(variante).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteVarianteAsync(int varianteId)
+        {
+            var variante = await _context.ProductosVariantes.FindAsync(varianteId);
+            if (variante != null)
+            {
+                _context.ProductosVariantes.Remove(variante);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<bool> ExistsVarianteAsync(int productoId, string ram, string almacenamiento, string color)
+        {
+            return await _context.ProductosVariantes
+                .AnyAsync(v => v.ProductoId == productoId && 
+                              v.Ram == ram && 
+                              v.Almacenamiento == almacenamiento && 
+                              v.Color == color);
+        }
+
+        public async Task<bool> ExistsProductoAsync(string marca, string modelo)
+        {
+            return await _context.Productos
+                .AnyAsync(p => p.Marca == marca && p.Modelo == modelo);
         }
     }
 }

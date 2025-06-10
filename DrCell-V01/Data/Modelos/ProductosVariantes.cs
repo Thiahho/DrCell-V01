@@ -12,11 +12,14 @@ namespace DrCell_V01.Data.Modelos
         [Column("stock")]
         public int Stock { get; set; }
         [Column("color")]
-        public string Color { get; set; }
+        [Required]
+        public required string Color { get; set; }
         [Column("ram")]
-        public string Ram { get; set; }
+        [Required]
+        public required string Ram { get; set; }
         [Column("modelo")]
-        public string Almacenamiento { get; set; }
+        [Required]
+        public required string Almacenamiento { get; set; }
         [Column("precio")]
         public decimal Precio { get; set; }
 

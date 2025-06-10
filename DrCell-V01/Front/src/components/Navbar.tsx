@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -16,14 +16,44 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import LogoutIcon from '@mui/icons-material/Logout';
+import {
+  HomeIcon,
+  CubeIcon,
+  UsersIcon,
+  ClipboardIcon,
+  UserCircleIcon,
+  ArrowLeftOnRectangleIcon,
+  Bars3Icon,
+} from '@heroicons/react/24/outline';
 
 const Navbar: React.FC = () => {
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+  React.useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    setIsAuthenticated(!!token);
+    setUser(userData);
+  }, []);
+
   const handleCountryClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
   const handleCountryClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+    setUser(null);
+    navigate('/');
   };
 
   return (
@@ -59,7 +89,7 @@ const Navbar: React.FC = () => {
             </Box>
             {/* Acciones a la derecha */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-             {/* <Link href="#" underline="none" sx={{ color: 'text.primary', fontSize: 14 }}>
+              {/* <Link href="#" underline="none" sx={{ color: 'text.primary', fontSize: 14 }}>
                 Crear cuenta empresa y empieza a comprar
               </Link>*/}
               <IconButton color="inherit">
@@ -82,16 +112,52 @@ const Navbar: React.FC = () => {
                 <MenuItem onClick={handleCountryClose}>México</MenuItem>
                 <MenuItem onClick={handleCountryClose}>Argentina</MenuItem>
               </Menu>*/}
-              <Button
-                variant="outlined"
-                color="inherit"
-                startIcon={<AccountCircleIcon />}
-                component={RouterLink}
-                to="/cuenta"
-                sx={{ ml: 1, borderRadius: 2, borderColor: '#17436b', color: '#17436b', fontWeight: 500 }}
-              >
-                Mi Cuenta
-              </Button>
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    variant="outlined"
+                    color="inherit"
+                    startIcon={<AccountCircleIcon />}
+                    component={RouterLink}
+                    to="/cuenta"
+                    sx={{ ml: 1, borderRadius: 2, borderColor: '#17436b', color: '#17436b', fontWeight: 500 }}
+                  >
+                    {user?.email}
+                  </Button>
+                  {user?.rol === 'ADMIN' && (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      startIcon={<AdminPanelSettingsIcon />}
+                      component={RouterLink}
+                      to="/admin"
+                      sx={{ ml: 1, borderRadius: 2, bgcolor: '#17436b', '&:hover': { bgcolor: '#0d2b4a' } }}
+                    >
+                      Admin
+                    </Button>
+                  )}
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<LogoutIcon />}
+                    onClick={handleLogout}
+                    sx={{ ml: 1, borderRadius: 2 }}
+                  >
+                    Cerrar Sesión
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<AccountCircleIcon />}
+                  component={RouterLink}
+                  to="/login"
+                  sx={{ ml: 1, borderRadius: 2, bgcolor: '#17436b', '&:hover': { bgcolor: '#0d2b4a' } }}
+                >
+                  Iniciar Sesión
+                </Button>
+              )}
             </Box>
           </Toolbar>
         </Container>

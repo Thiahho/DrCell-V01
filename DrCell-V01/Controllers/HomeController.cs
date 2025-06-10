@@ -3,6 +3,7 @@ using DrCell_V01.Data.Modelos;
 using DrCell_V01.Data.Vistas;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace DrCell_V01.Controllers
 {
@@ -23,7 +24,7 @@ namespace DrCell_V01.Controllers
             return View(viewModel);
         }
 
-       /* [HttpPost]
+        [HttpPost]
         public IActionResult Buscar(PresupuestoConsultaViewModel modelo)
         {
             // Buscar módulos
@@ -54,22 +55,27 @@ namespace DrCell_V01.Controllers
                 .FirstOrDefault(x => x.marca == modelo.Marca && x.modelo == modelo.Modelo);
             modelo.ArregloPin = pin?.arreglo;
 
-            // Guardar presupuesto completo en sesión usando extensión
-            HttpContext.Session.SetObject("Presupuesto", modelo);
+            // Guardar presupuesto completo en sesión
+            var jsonString = JsonSerializer.Serialize(modelo);
+            HttpContext.Session.SetString("Presupuesto", jsonString);
 
             ViewBag.Marcas = _context.Celulares.Select(c => c.marca).Distinct().ToList();
             return View("Index", modelo);
-        }*/
+        }
 
         // Nueva acción para mostrar el resumen desde sesión
         [HttpGet]
         public IActionResult Resumen()
         {
-            var modelo = HttpContext.Session.GetObject<PresupuestoConsultaViewModel>("Presupuesto");
+            var jsonString = HttpContext.Session.GetString("Presupuesto");
+            if (string.IsNullOrEmpty(jsonString))
+            {
+                return RedirectToAction("Index");
+            }
 
+            var modelo = JsonSerializer.Deserialize<PresupuestoConsultaViewModel>(jsonString);
             if (modelo == null)
             {
-                // No hay presupuesto en sesión, redirige a inicio
                 return RedirectToAction("Index");
             }
 

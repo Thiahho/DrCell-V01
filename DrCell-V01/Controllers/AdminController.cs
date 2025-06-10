@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using BCrypt.Net;
 
 namespace DrCell_V01.Controllers
 {
@@ -31,47 +32,76 @@ namespace DrCell_V01.Controllers
         }
 
         [HttpPost("registro")]
-        public async Task<IActionResult> CrearAdminDesdePostman([FromBody] Usuario usuario)
+        public async Task<IActionResult> CrearAdmin([FromBody] Usuario usuario)
         {
             try
             {
-                if (usuario.Rol?.ToUpper() != "ADMIN")
-                    return BadRequest("Este endpoint solo acepta usuarios con rol ADMIN.");
+                if (string.IsNullOrEmpty(usuario.Email) || string.IsNullOrEmpty(usuario.ClaveHash))
+                {
+                    return BadRequest(new { message = "Email y contraseña son requeridos" });
+                }
 
-                // Hash de la clave antes de guardar
-                usuario.ClaveHash = BCrypt.Net.BCrypt.HashPassword(usuario.ClaveHash);
+                usuario.Rol = "ADMIN";
+                var usuarioCreado = await _usuarioService.CrearUsuarioAsync(usuario);
 
-                _context.Usuarios.Add(usuario);
-                await _context.SaveChangesAsync();
-
-                return Ok("Administrador creado correctamente.");
+                return Ok(new { 
+                    message = "Administrador creado correctamente",
+                    usuario = new {
+                        id = usuarioCreado.Id,
+                        email = usuarioCreado.Email,
+                        rol = usuarioCreado.Rol
+                    }
+                });
             }
-            catch (Exception)
+            catch (InvalidOperationException ex)
             {
-                return StatusCode(500, "Error al crear el administrador.");
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al crear el administrador", error = ex.Message });
             }
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] Auth auth)
         {
-         var usuario = await _usuarioService.ValidarCredencialesAsync(auth.Email, auth.Password);
-            if (usuario == null)
+            try
             {
-                return Unauthorized("Credenciales inválidas.");
-            }
-            var token = _usuarioService.GenerarToken(usuario);
-            
-            return Ok(new 
-            {
-                Token = token,
-                Usuario = new
+                if (string.IsNullOrEmpty(auth.Email) || string.IsNullOrEmpty(auth.Password))
                 {
-                    usuario.Id,
-                    usuario.Email,
-                    usuario.Rol
+                    return BadRequest("Email y contraseña son requeridos");
                 }
-            });
+
+                var usuario = await _usuarioService.ValidarCredencialesAsync(auth.Email, auth.Password);
+                
+                if (usuario == null)
+                {
+                    return Unauthorized(new { message = "Credenciales inválidas" });
+                }
+
+                if (usuario.Rol?.ToUpper() != "ADMIN")
+                {
+                    return Unauthorized(new { message = "No tienes permisos de administrador" });
+                }
+
+                var token = _usuarioService.GenerarToken(usuario);
+                
+                return Ok(new 
+                {
+                    token = token,
+                    usuario = new
+                    {
+                        id = usuario.Id,
+                        email = usuario.Email,
+                        rol = usuario.Rol
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al iniciar sesión", error = ex.Message });
+            }
         }
 
         private async Task<bool> AlreadyExist(string email)
@@ -82,6 +112,7 @@ namespace DrCell_V01.Controllers
         // ============================= ENDPOINTS PROTEGIDOS =============================
 
 
+        [Authorize(Roles = "ADMIN")]
         [HttpGet]
         public async Task<IActionResult> GetCelulares()
         {
@@ -96,6 +127,7 @@ namespace DrCell_V01.Controllers
             }
         }   
 
+        [Authorize(Roles = "ADMIN")]
         [HttpGet("marcas")]
         public async Task<IActionResult> GetMarcas()
         {

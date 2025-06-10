@@ -9,15 +9,19 @@ namespace DrCell_V01.Data.Modelos
         [Key]
         public int Id { get; set; }
         [Column("marca")]
-        public string Marca { get; set; }
+        [Required]
+        public required string Marca { get; set; }
         [Column("modelo")]
-        public string Modelo { get; set; }
+        [Required]
+        public required string Modelo { get; set; }
         [Column("categoria")]
-        public string Categoria { get; set; }
+        [Required]
+        public required string Categoria { get; set; }
         [Column("img")]
-        public byte[] Img { get; set; }
+        [Required]
+        public required byte[] Img { get; set; }
 
-        public ICollection<ProductosVariantes> Variantes { get; set; }
+        public required ICollection<ProductosVariantes> Variantes { get; set; }
 
         public int GetTotalStock()
         {

@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using BCrypt.Net;
+using Microsoft.Extensions.Logging;
 
 namespace DrCell_V01.Services
 {
@@ -15,59 +17,150 @@ namespace DrCell_V01.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _config;
-        public UsuarioService(ApplicationDbContext applicationDbContext, IConfiguration configuration)
+        private readonly ILogger<UsuarioService> _logger;
+
+        public UsuarioService(
+            ApplicationDbContext applicationDbContext, 
+            IConfiguration configuration,
+            ILogger<UsuarioService> logger)
         {
             _context = applicationDbContext;
             _config = configuration;
-        }
-        public async Task CrearUsuarioAsync(Usuario usuario)
-        {
-            if (usuario.Rol != null && usuario.Rol.ToUpper() == "ADMIN")
-                throw new InvalidOperationException("No puedes crear usuarios con rol ADMIN desde el sistema.");
-
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
+            _logger = logger;
         }
 
-        public async Task<Usuario> ObtenerUsuarioPorEmailAsync(string email)
+        public async Task<Usuario> ValidarCredencialesAsync(string email, string password)
         {
-            return await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == email.ToLower());
-        }
-
-        public async Task<Usuario> ValidarCredencialesAsync(string userName, string password)
-        {
-            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == userName.ToLower());
-            if (usuario == null)
+            try
             {
-                return null; // Usuario no encontrado
-            }
-            
-            bool claveOk= BCrypt.Net.BCrypt.Verify(password, usuario.ClaveHash);
+                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+                {
+                    _logger.LogWarning("Intento de login con email o password vacío");
+                    return null;
+                }
 
-            return claveOk ? usuario : null; // Retorna el usuario si las credenciales son válidas, de lo contrario null
+                email = email.ToLower().Trim();
+                _logger.LogInformation($"Intentando login para email: {email}");
+
+                var usuario = await _context.Usuarios
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+
+                if (usuario == null)
+                {
+                    _logger.LogWarning($"Usuario no encontrado para email: {email}");
+                    return null;
+                }
+
+                _logger.LogInformation($"Usuario encontrado. Verificando contraseña...");
+                _logger.LogInformation($"Hash almacenado: {usuario.ClaveHash}");
+                _logger.LogInformation($"Contraseña recibida: {password}");
+
+                try
+                {
+                    bool claveOk = BCrypt.Net.BCrypt.Verify(password, usuario.ClaveHash);
+                    _logger.LogInformation($"Resultado de verificación: {claveOk}");
+                    
+                    if (!claveOk)
+                    {
+                        _logger.LogWarning($"Contraseña incorrecta para usuario: {email}");
+                        return null;
+                    }
+
+                    _logger.LogInformation($"Login exitoso para usuario: {email}");
+                    return usuario;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error al verificar la contraseña");
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al validar credenciales para email: {email}");
+                return null;
+            }
         }
 
         public string GenerarToken(Usuario usuario)
         {
-            var claims = new List<Claim>
+            try
             {
-                new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-                new Claim(ClaimTypes.Email, usuario.Email),
-                new Claim(ClaimTypes.Role, usuario.Rol)
-            };
+                var secretKey = _config["JWTKey:Secret"] ?? 
+                    throw new InvalidOperationException("JWT Secret no configurado");
+                
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+                var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWTKey:Secret"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            
-            var token = new JwtSecurityToken(
-                issuer: _config["JWTKey:Issuer"],
-                audience: _config["JWTKey:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddHours(1),
-                signingCredentials: creds
-            );
+                var claims = new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+                    new Claim(ClaimTypes.Email, usuario.Email),
+                    new Claim(ClaimTypes.Role, usuario.Rol ?? "USER")
+                };
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+                var token = new JwtSecurityToken(
+                    issuer: _config["JWTKey:ValidIssuer"],
+                    audience: _config["JWTKey:ValidAudience"],
+                    claims: claims,
+                    expires: DateTime.Now.AddHours(1),
+                    signingCredentials: credentials
+                );
+
+                return new JwtSecurityTokenHandler().WriteToken(token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al generar token JWT");
+                throw;
+            }
+        }
+
+        public async Task<Usuario> ObtenerUsuarioPorEmailAsync(string email)
+        {
+            try
+            {
+                return await _context.Usuarios
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al buscar usuario por email: {email}");
+                throw;
+            }
+        }
+
+        public async Task<Usuario> CrearUsuarioAsync(Usuario usuario)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(usuario.Email) || string.IsNullOrEmpty(usuario.ClaveHash))
+                {
+                    throw new ArgumentException("Email y contraseña son requeridos");
+                }
+
+                if (await ObtenerUsuarioPorEmailAsync(usuario.Email) != null)
+                {
+                    throw new InvalidOperationException("El email ya está registrado");
+                }
+
+                usuario.Email = usuario.Email.ToLower().Trim();
+                usuario.ClaveHash = BCrypt.Net.BCrypt.HashPassword(usuario.ClaveHash);
+                usuario.Rol ??= "USER";
+
+                _logger.LogInformation($"Creando usuario: {usuario.Email}");
+                _logger.LogInformation($"Hash generado: {usuario.ClaveHash}");
+
+                _context.Usuarios.Add(usuario);
+                await _context.SaveChangesAsync();
+
+                return usuario;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al crear usuario: {usuario.Email}");
+                throw;
+            }
         }
 
         public async Task ActualizarProductoAsync(Productos producto, int id)
@@ -75,10 +168,10 @@ namespace DrCell_V01.Services
             var modelo = await _context.Productos.FindAsync(id);
             if (modelo != null)
             {
-                modelo.Marca= producto.Marca;
+                modelo.Marca = producto.Marca;
                 modelo.Modelo = producto.Modelo;
                 modelo.Categoria = producto.Categoria;
-                modelo.Img= producto.Img;
+                modelo.Img = producto.Img;
                 _context.Productos.Update(modelo);
                 await _context.SaveChangesAsync();
             }
@@ -87,38 +180,6 @@ namespace DrCell_V01.Services
                 throw new KeyNotFoundException("Producto no encontrado.");
             }
         }
-
-       /* public async Task CrearProductoAsync(Productos producto)
-        {
-            if(producto == null)
-            {
-                throw new ArgumentNullException(nameof(producto), "El producto no puede ser nulo.");
-            }
-            var modelo = new Productos
-            {
-                Marca = producto.Marca,
-                Modelo = producto.Modelo,
-                Categoria = producto.Categoria,
-                Img = producto.Img
-            };
-
-            await _context.Productos.AddAsync(modelo);
-            await _context.SaveChangesAsync();
-
-            foreach (var variante in producto.Variantes)
-            {
-                var variant = new ProductosVariantes
-                {
-                    ProductoId = modelo.Id,
-                    Ram = variante.Ram,
-                    Almacenamiento = variante.Almacenamiento,
-                    Color = variante.Color,
-                    Precio = variante.Precio,
-                    Stock = variante.Stock
-                };
-                await _context.ProductosVariantes.AddAsync(variant);
-            }
-        }*/
 
         public Task EliminarProducto(int id)
         {

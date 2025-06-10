@@ -1,6 +1,5 @@
 ﻿using DrCell_V01.Data.Modelos;
 using DrCell_V01.Data.Vistas;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace DrCell_V01.Data
@@ -28,32 +27,51 @@ namespace DrCell_V01.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            
             modelBuilder.Entity<Usuario>()
                 .ToTable("usuarios")
                 .HasKey(x => x.Id);
+
             modelBuilder.Entity<Celular>()
                 .ToTable("celulares")
                 .HasKey(e => e.id);
+
             modelBuilder.Entity<Modulos>()
                 .ToTable("modulos")
                 .HasKey(m => m.id);
+
             modelBuilder.Entity<Baterias>()
                 .ToTable("baterias")
                 .HasKey(b => b.id);
+
             modelBuilder.Entity<Pines>()
                 .ToTable("pines")
                 .HasKey(p => p.id);
+
             modelBuilder.Entity<Productos>()
                 .ToTable("productos")
                 .HasKey(v => v.Id);
+
             modelBuilder.Entity<ProductosVariantes>()
                 .ToTable("productos_variantes")
                 .HasKey(v => v.Id);
 
-            modelBuilder.Entity<vCelularesMBP>().HasNoKey().ToView("vcelularesmbp");
-            modelBuilder.Entity<vCelularM>().HasNoKey().ToView("vcelularm");
-            modelBuilder.Entity<vCelularB>().HasNoKey().ToView("vcelularb");
-            modelBuilder.Entity<vCelularP>().HasNoKey().ToView("vcelularp");
+            // Configuración de las vistas
+            modelBuilder.Entity<vCelularesMBP>()
+                .HasNoKey()
+                .ToView("vcelularesmbp");
+
+            modelBuilder.Entity<vCelularM>()
+                .HasNoKey()
+                .ToView("vcelularm");
+
+            modelBuilder.Entity<vCelularB>()
+                .HasNoKey()
+                .ToView("vcelularb");
+
+            modelBuilder.Entity<vCelularP>()
+                .HasNoKey()
+                .ToView("vcelularp");
         }
     }
 }

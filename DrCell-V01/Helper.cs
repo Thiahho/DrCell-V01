@@ -1,18 +1,17 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json;
 
 namespace DrCell_V01
 {
-    public static class SessionExtensions
+    public static class Helper
     {
-        public static void SetObject<T>(this ISession session, string key, T value)
+        public static string ToJson(this object obj)
         {
-            session.SetString(key, JsonConvert.SerializeObject(value));
+            return JsonSerializer.Serialize(obj);
         }
 
-        public static T GetObject<T>(this ISession session, string key)
+        public static T? FromJson<T>(this string json)
         {
-            var value = session.GetString(key);
-            return value == null ? default : JsonConvert.DeserializeObject<T>(value);
+            return JsonSerializer.Deserialize<T>(json);
         }
     }
 }

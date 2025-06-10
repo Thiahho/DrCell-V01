@@ -142,5 +142,136 @@ namespace DrCell_V01.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        [HttpPost]
+        public async Task<ActionResult<Productos>> CreateProducto([FromBody] Productos producto)
+        {
+            try
+            {
+                if (producto == null)
+                    return BadRequest("El producto no puede ser nulo");
+
+                var nuevoProducto = await _productoService.AddAsync(producto);
+                return CreatedAtAction(nameof(GetProductoById), new { id = nuevoProducto.Id }, nuevoProducto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        [HttpPost("{productoId}/variante")]
+        public async Task<ActionResult<ProductosVariantes>> CreateVariante(int productoId, [FromBody] ProductosVariantes variante)
+        {
+            try
+            {
+                if (variante == null)
+                    return BadRequest("La variante no puede ser nula");
+
+                variante.ProductoId = productoId;
+                var nuevaVariante = await _productoService.AddVarianteAsync(variante);
+                return CreatedAtAction(nameof(GetVarianteSpecAsync), 
+                    new { 
+                        productId = productoId, 
+                        ram = variante.Ram, 
+                        storage = variante.Almacenamiento, 
+                        color = variante.Color 
+                    }, 
+                    nuevaVariante);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProducto(int id, [FromBody] Productos producto)
+        {
+            try
+            {
+                if (id != producto.Id)
+                    return BadRequest("El ID del producto no coincide");
+
+                var productoExistente = await _productoService.GetByIdWithVarianteAsync(id);
+                if (productoExistente == null)
+                    return NotFound($"No se encontró el producto con ID {id}");
+
+                await _productoService.UpdateAsync(producto);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProducto(int id)
+        {
+            try
+            {
+                var producto = await _productoService.GetByIdWithVarianteAsync(id);
+                if (producto == null)
+                    return NotFound($"No se encontró el producto con ID {id}");
+
+                await _productoService.DeleteAsync(id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        [HttpPut("{productoId}/variante/{varianteId}")]
+        public async Task<IActionResult> UpdateVariante(int productoId, int varianteId, [FromBody] ProductosVariantes variante)
+        {
+            try
+            {
+                if (varianteId != variante.Id)
+                    return BadRequest("El ID de la variante no coincide");
+
+                var varianteExistente = await _productoService.GetVarianteSpecAsync(
+                    productoId, 
+                    variante.Ram, 
+                    variante.Almacenamiento, 
+                    variante.Color,
+                    "Nuevo" // Asumiendo que es el valor por defecto
+                );
+
+                if (varianteExistente == null)
+                    return NotFound($"No se encontró la variante con ID {varianteId}");
+
+                _context.Entry(variante).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("{productoId}/variante/{varianteId}")]
+        public async Task<IActionResult> DeleteVariante(int productoId, int varianteId)
+        {
+            try
+            {
+                var variante = await _context.ProductosVariantes
+                    .FirstOrDefaultAsync(v => v.Id == varianteId && v.ProductoId == productoId);
+
+                if (variante == null)
+                    return NotFound($"No se encontró la variante con ID {varianteId}");
+
+                _context.ProductosVariantes.Remove(variante);
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
     }
 }
