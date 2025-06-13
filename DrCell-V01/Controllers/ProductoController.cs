@@ -1,8 +1,10 @@
 ﻿using DrCell_V01.Data;
+using DrCell_V01.Data.Dtos;
 using DrCell_V01.Data.Modelos;
 using DrCell_V01.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DrCell_V01.Controllers
 {
@@ -18,8 +20,9 @@ namespace DrCell_V01.Controllers
            _productoService = productoService;
         }
 
+        [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Productos>>> GetProductos()
+        public async Task<ActionResult<IEnumerable<ProductoDto>>> GetProductos()
         {
             try
             {
@@ -32,8 +35,9 @@ namespace DrCell_V01.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Productos>> GetProductoById(int id)
+        public async Task<ActionResult<ProductoDto>> GetProductoById(int id)
         {
             try
             {
@@ -50,8 +54,9 @@ namespace DrCell_V01.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("{productoId}/variantes")]
-        public async Task<ActionResult<IEnumerable<ProductosVariantes>>> GetVariantesAsync(int productoId)
+        public async Task<ActionResult<IEnumerable<ProductosVariantesDto>>> GetVariantesAsync(int productoId)
         {
             try
             {
@@ -68,6 +73,7 @@ namespace DrCell_V01.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("{productoId}/Ram-Opciones")]
         public async Task<ActionResult<IEnumerable<string>>> GetDistinctRamAsync(int productoId)
         {
@@ -87,6 +93,7 @@ namespace DrCell_V01.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("{productoId}/Almacenamiento-Opciones")]
         public async Task<ActionResult<IEnumerable<string>>> GetDistinctAlmacenamientosAsync(int productoId, [FromQuery] string ram)
         {
@@ -106,6 +113,7 @@ namespace DrCell_V01.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("{productoId}/Color-Opciones")]
         public async Task<ActionResult<IEnumerable<string>>> GetDistinctColorsAsync(int productoId, [FromQuery] string ram, [FromQuery] string almacenamiento)
         {
@@ -125,8 +133,9 @@ namespace DrCell_V01.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("{productId}/variante")]
-        public async Task<ActionResult<ProductosVariantes>> GetVarianteSpecAsync(int productId, [FromQuery] string ram, [FromQuery] string storage, [FromQuery] string color, [FromQuery] string condicion)
+        public async Task<ActionResult<ProductosVariantesDto>> GetVarianteSpecAsync(int productId, [FromQuery] string ram, [FromQuery] string storage, [FromQuery] string color, [FromQuery] string condicion)
         {
             try
             {
@@ -143,16 +152,30 @@ namespace DrCell_V01.Controllers
             }
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPost]
-        public async Task<ActionResult<Productos>> CreateProducto([FromBody] Productos producto)
+        public async Task<ActionResult<ProductoDto>> CreateProducto([FromBody] ProductoDto producto)
         {
             try
             {
                 if (producto == null)
                     return BadRequest("El producto no puede ser nulo");
 
+                // Guardar el producto sin variantes primero
+                var variantes = producto.Variantes?.ToList() ?? new List<ProductosVariantes>();
+                producto.Variantes = new List<ProductosVariantes>();
                 var nuevoProducto = await _productoService.AddAsync(producto);
-                return CreatedAtAction(nameof(GetProductoById), new { id = nuevoProducto.Id }, nuevoProducto);
+
+                // Si hay variantes, asociarlas y guardarlas
+                foreach (var variante in variantes)
+                {
+                    variante.ProductoId = nuevoProducto.Id;
+                    await _productoService.AddVarianteAsync(variante);
+                }
+
+                // Recargar el producto con variantes
+                var productoConVariantes = await _productoService.GetByIdWithVarianteAsync(nuevoProducto.Id);
+                return CreatedAtAction(nameof(GetProductoById), new { id = productoConVariantes.Id }, productoConVariantes);
             }
             catch (Exception ex)
             {
@@ -160,8 +183,9 @@ namespace DrCell_V01.Controllers
             }
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPost("{productoId}/variante")]
-        public async Task<ActionResult<ProductosVariantes>> CreateVariante(int productoId, [FromBody] ProductosVariantes variante)
+        public async Task<ActionResult<ProductosVariantesDto>> CreateVariante(int productoId, [FromBody] ProductosVariantesDto variante)
         {
             try
             {
@@ -175,7 +199,8 @@ namespace DrCell_V01.Controllers
                         productId = productoId, 
                         ram = variante.Ram, 
                         storage = variante.Almacenamiento, 
-                        color = variante.Color 
+                        color = variante.Color,
+                        stock = variante.Stock
                     }, 
                     nuevaVariante);
             }
@@ -185,8 +210,9 @@ namespace DrCell_V01.Controllers
             }
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProducto(int id, [FromBody] Productos producto)
+        public async Task<IActionResult> UpdateProducto(int id, [FromBody] ProductoDto producto)
         {
             try
             {
@@ -206,6 +232,7 @@ namespace DrCell_V01.Controllers
             }
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProducto(int id)
         {
@@ -224,8 +251,9 @@ namespace DrCell_V01.Controllers
             }
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPut("{productoId}/variante/{varianteId}")]
-        public async Task<IActionResult> UpdateVariante(int productoId, int varianteId, [FromBody] ProductosVariantes variante)
+        public async Task<IActionResult> UpdateVariante(int productoId, int varianteId, [FromBody] ProductosVariantesDto variante)
         {
             try
             {
@@ -253,6 +281,7 @@ namespace DrCell_V01.Controllers
             }
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpDelete("{productoId}/variante/{varianteId}")]
         public async Task<IActionResult> DeleteVariante(int productoId, int varianteId)
         {

@@ -15,6 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// 2. Configuración de AutoMapper
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
 // 2. Configuración de CORS más segura
 builder.Services.AddCors(options =>
 {
@@ -40,6 +43,7 @@ builder.Services.AddAuthentication(options =>
     options.RequireHttpsMetadata = builder.Configuration.GetValue<bool>("Security:RequireHttpsMetadata");
     options.TokenValidationParameters = new TokenValidationParameters
     {
+        RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,

@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  Box,
-  Typography,
-  Grid,
-  TextField,
-  Button,
-  Paper,
-  MenuItem
-} from '@mui/material';
 import axios from 'axios';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 interface ReparacionInfo {
   arreglomodulo?: number;
@@ -175,194 +175,137 @@ const ConsultaReparacionSection: React.FC = () => {
   };
 
   return (
-    <Box sx={{ my: 8 }}>
-      <Paper sx={{ p: 4, maxWidth: 700, mx: 'auto', borderRadius: 3, boxShadow: 2 }}>
-        <Typography variant="h5" align="center" fontWeight={700} gutterBottom>
-          Consulta tu reparación
-        </Typography>
-        <Box component="form" onSubmit={handleConsultar} sx={{ mt: 3 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                select
-                label="Marca"
-                value={marca}
-                onChange={e => setMarca(e.target.value)}
-                fullWidth
-                required
-              >
+    <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-8 mt-8">
+      <h2 className="text-2xl font-bold text-center mb-8 text-gray-900">Consulta tu reparación</h2>
+      <form onSubmit={handleConsultar} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Marca</label>
+            <Select value={marca} onValueChange={setMarca}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona marca" />
+              </SelectTrigger>
+              <SelectContent>
                 {marcas.map(m => (
-                  <MenuItem key={m} value={m}>{m}</MenuItem>
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
                 ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                select
-                label="Modelo"
-                value={modelo}
-                onChange={e => setModelo(e.target.value)}
-                fullWidth
-                required
-                disabled={!marca}
-              >
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Modelo</label>
+            <Select value={modelo} onValueChange={setModelo} disabled={!marca}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona modelo" />
+              </SelectTrigger>
+              <SelectContent>
                 {modelos.map(m => (
-                  <MenuItem key={m} value={m}>{m}</MenuItem>
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
                 ))}
-              </TextField>
-            </Grid>
-            {/* Selectores independientes para cada campo */}
-            {coloresDisponibles.length > 0 && (
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  select
-                  label="Color"
-                  value={color}
-                  onChange={e => setColor(e.target.value)}
-                  fullWidth
-                  required
-                >
-                  <MenuItem value="">Selecciona color</MenuItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {coloresDisponibles.length > 0 && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Color</label>
+              <Select value={color} onValueChange={setColor}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona color" />
+                </SelectTrigger>
+                <SelectContent>
                   {coloresDisponibles.map((c, idx) => (
-                    <MenuItem key={idx} value={c}>{c}</MenuItem>
+                    <SelectItem key={idx} value={c}>{c}</SelectItem>
                   ))}
-                </TextField>
-              </Grid>
-            )}
-            {marcosDisponibles.length > 0 && (
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  select
-                  label="Marco"
-                  value={marco}
-                  onChange={e => setMarco(e.target.value)}
-                  fullWidth
-                  required
-                >
-                  <MenuItem value="">Selecciona marco</MenuItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {marcosDisponibles.length > 0 && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Marco</label>
+              <Select value={marco} onValueChange={setMarco}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona marco" />
+                </SelectTrigger>
+                <SelectContent>
                   {marcosDisponibles.map((m, idx) => (
-                    <MenuItem key={idx} value={m}>{m}</MenuItem>
+                    <SelectItem key={idx} value={m}>{m}</SelectItem>
                   ))}
-                </TextField>
-              </Grid>
-            )}
-            {versionesDisponibles.length > 0 && (
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  select
-                  label="Versión"
-                  value={version}
-                  onChange={e => setVersion(e.target.value)}
-                  fullWidth
-                  required
-                >
-                  <MenuItem value="">Selecciona versión</MenuItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {versionesDisponibles.length > 0 && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Versión</label>
+              <Select value={version} onValueChange={setVersion}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona versión" />
+                </SelectTrigger>
+                <SelectContent>
                   {versionesDisponibles.map((v, idx) => (
-                    <MenuItem key={idx} value={v}>{v}</MenuItem>
+                    <SelectItem key={idx} value={v}>{v}</SelectItem>
                   ))}
-                </TextField>
-              </Grid>
-            )}
-            {tiposDisponibles.length > 0 && (
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  select
-                  label="Tipo"
-                  value={tipo}
-                  onChange={e => setTipo(e.target.value)}
-                  fullWidth
-                  required
-                >
-                  <MenuItem value="">Selecciona tipo</MenuItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {tiposDisponibles.length > 0 && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo</label>
+              <Select value={tipo} onValueChange={setTipo}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona tipo" />
+                </SelectTrigger>
+                <SelectContent>
                   {tiposDisponibles.map((t, idx) => (
-                    <MenuItem key={idx} value={t}>{t}</MenuItem>
+                    <SelectItem key={idx} value={t}>{t}</SelectItem>
                   ))}
-                </TextField>
-              </Grid>
-            )}
-            {/* Mostrar detalles de la variante seleccionada */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Módulo"
-                value={varianteSeleccionada?.arreglomodulo ? `$${varianteSeleccionada.arreglomodulo}` : ''}
-                InputProps={{ readOnly: true }}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Pin de carga"
-                value={varianteSeleccionada?.arreglopin ? `$${varianteSeleccionada.arreglopin}` : ''}
-                InputProps={{ readOnly: true }}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Batería"
-                value={varianteSeleccionada?.arreglobateria ? `$${varianteSeleccionada.arreglobateria}` : ''}
-                InputProps={{ readOnly: true }}
-                fullWidth
-              />
-            </Grid>
-            {/*{varianteSeleccionada?.colormodulo && (
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Color del módulo"
-                  value={varianteSeleccionada.colormodulo}
-                  InputProps={{ readOnly: true }}
-                  fullWidth
-                />
-              </Grid>
-            )}*
-            {varianteSeleccionada?.tipo && (
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Tipo"
-                  value={varianteSeleccionada.tipo}
-                  InputProps={{ readOnly: true }}
-                  fullWidth
-                />
-              </Grid>
-            )}
-            {varianteSeleccionada?.marco !== undefined && (
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Marco"
-                  value={varianteSeleccionada.marco ? 'Sí' : 'No'}
-                  InputProps={{ readOnly: true }}
-                  fullWidth
-                />
-              </Grid>
-            )}*/}
-            {varianteSeleccionada?.version && (
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Versión"
-                  value={varianteSeleccionada.version}
-                  InputProps={{ readOnly: true }}
-                  fullWidth
-                />
-              </Grid>
-            )}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Precio total"
-                value={precio}
-                InputProps={{ readOnly: true }}
-                fullWidth
-                helperText={loading ? 'Consultando...' : ''}
-              />
-            </Grid>
-            <Grid item xs={12} sx={{ textAlign: 'center' }}>
-              <Button type="submit" variant="contained" sx={{ px: 6, borderRadius: 2 }} disabled>
-                Consultar
-              </Button>
-            </Grid>
-          </Grid>
-        </Box>
-      </Paper>
-    </Box>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Módulo</label>
+            <Input
+              value={varianteSeleccionada?.arreglomodulo ? `$${varianteSeleccionada.arreglomodulo}` : ''}
+              readOnly
+              className="rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Pin de carga</label>
+            <Input
+              value={varianteSeleccionada?.arreglopin ? `$${varianteSeleccionada.arreglopin}` : ''}
+              readOnly
+              className="rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Batería</label>
+            <Input
+              value={varianteSeleccionada?.arreglobateria ? `$${varianteSeleccionada.arreglobateria}` : ''}
+              readOnly
+              className="rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition w-full"
+            />
+          </div>
+        </div>
+        <div className="mt-6">
+          <label className="block text-sm font-semibold text-gray-700 mb-1">Precio total</label>
+          <Input
+            value={precio}
+            readOnly
+            className="rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition w-full"
+          />
+          {loading && <p className="text-sm text-muted-foreground mt-2">Consultando...</p>}
+        </div>
+        <Button type="submit" className="w-full mt-6 py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition" disabled>
+          Consultar
+        </Button>
+      </form>
+    </div>
   );
 };
 

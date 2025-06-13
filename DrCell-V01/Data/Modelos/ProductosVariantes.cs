@@ -10,6 +10,7 @@ namespace DrCell_V01.Data.Modelos
         public int Id { get; set; }
         public int ProductoId { get; set; }
         [Column("stock")]
+        [Required]
         public int Stock { get; set; }
         [Column("color")]
         [Required]
@@ -17,13 +18,14 @@ namespace DrCell_V01.Data.Modelos
         [Column("ram")]
         [Required]
         public required string Ram { get; set; }
-        [Column("modelo")]
+        [Column("almacenamiento")]
         [Required]
         public required string Almacenamiento { get; set; }
         [Column("precio")]
+        [Required]
         public decimal Precio { get; set; }
 
-        public required Productos Producto { get; set; }
+        public Productos? Producto { get; set; }
 
 
 

@@ -1,72 +1,54 @@
-import React from 'react';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import RepairQuote from './pages/RepairQuote';
 import Footer from './components/Footer';
-import Dashboard from './pages/admin/Dashboard';
-import Pedidos from './pages/admin/Pedidos';
-import Productos from './pages/admin/Productos';
-import Usuarios from './pages/admin/Usuarios';
-import Perfil from './pages/admin/Perfil';
-import LayoutAdmin from './components/layout/LayoutAdmin';
-import './App.css';
+import Home from '@/pages/Home';
+import Pedidos from '@/pages/admin/Pedidos';
+import Productos from '@/pages/admin/Productos';
+import Usuarios from '@/pages/admin/Usuarios';
+import Perfil from '@/pages/admin/Perfil';
+import ConsultaReparacionSection from './components/ConsultaReparacionSection';
+import {Login} from '@/pages/Login';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import LayoutAdmin from '@/components/layout/LayoutAdmin';
+import DashboardAdmin from '@/components/admin/DasboardAdmin';
+import PrivateRoute from '@/components/admin/PrivateRoute';
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-  },
-});
+const UserDashboard = () => <div>Panel de Usuario</div>;
 
-function App() {
-  const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith('/admin');
-
+export default function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <div className="App">
-        {!isAdminRoute && <Navbar />}
-        <Routes>
-          {/* Rutas públicas con App-content */}
-          <Route
-            path="/"
-            element={
-              <main className="App-content">
-                <Home />
-              </main>
-            }
-          />
-          <Route
-            path="/cotizacion"
-            element={
-              <main className="App-content">
-                <RepairQuote />
-              </main>
-            }
-          />
-          {/* Rutas admin con layout propio */}
-          <Route path="/admin" element={<LayoutAdmin />}>
-            <Route index element={<Dashboard />} />
-            <Route path="pedidos" element={<Pedidos />} />
-            <Route path="productos" element={<Productos />} />
-            <Route path="usuarios" element={<Usuarios />} />
-            <Route path="perfil" element={<Perfil />} />
-          </Route>
-          <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
-        </Routes>
-        {!isAdminRoute && <Footer />}
-      </div>
-    </ThemeProvider>
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/cotizacion" element={<ConsultaReparacionSection />} />
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/admin"
+          element={
+            <PrivateRoute>
+              <LayoutAdmin />
+            </PrivateRoute>
+          }
+        >
+            <Route index element={<DashboardAdmin />} />
+  <Route path="pedidos" element={<Pedidos />} />
+  <Route path="productos" element={<Productos />} />
+  <Route path="usuarios" element={<Usuarios />} />
+  <Route path="perfil" element={<Perfil />} />
+         <Route index element={<DashboardAdmin />} />
+        </Route>
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute requiredRole="user">
+              <UserDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Home />} />
+      </Routes>
+      <Footer />
+    </BrowserRouter>
   );
-
-}
-
-export default App; 
+} 

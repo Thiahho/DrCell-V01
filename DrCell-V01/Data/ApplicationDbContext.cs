@@ -50,12 +50,19 @@ namespace DrCell_V01.Data
 
             modelBuilder.Entity<Productos>()
                 .ToTable("productos")
-                .HasKey(v => v.Id);
+                .HasKey(p => p.Id);
+
+            modelBuilder.Entity<Productos>()
+                .HasMany(p => p.Variantes)
+                .WithOne(v => v.Producto)
+                .HasForeignKey(v => v.ProductoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
 
             modelBuilder.Entity<ProductosVariantes>()
                 .ToTable("productos_variantes")
                 .HasKey(v => v.Id);
-
+        
             // Configuración de las vistas
             modelBuilder.Entity<vCelularesMBP>()
                 .HasNoKey()

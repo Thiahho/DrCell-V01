@@ -1,35 +1,41 @@
 ﻿using DrCell_V01.Data;
+using DrCell_V01.Data.Dtos;
 using DrCell_V01.Data.Modelos;
 using DrCell_V01.Services.Interface;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace DrCell_V01.Services
 {
     public class ProductosService : IProductoService
-    {
+    {   
+        private readonly IMapper _mapper;
         private readonly ApplicationDbContext _context;
-        public ProductosService(ApplicationDbContext applicationDbContext)
+        public ProductosService(ApplicationDbContext applicationDbContext, IMapper mapper)
         {
             _context = applicationDbContext;
+            _mapper = mapper;
         }
 
-        public async Task<Productos> AddAsync(Productos productos)
+        public async Task<ProductoDto> AddAsync(ProductoDto productoDto)
         {
-            _context.Productos.Add(productos);
-            await _context.SaveChangesAsync();  
-            return productos;
-        }
-
-        public async Task<ProductosVariantes> AddVarianteAsync(ProductosVariantes productosVariantes)
-        {
-            _context.ProductosVariantes.Add(productosVariantes);    
+            var entidad = _mapper.Map<Productos>(productoDto);
+            _context.Productos.Add(entidad);
             await _context.SaveChangesAsync();
-            return productosVariantes;
+            return _mapper.Map<ProductoDto>(entidad);
+        }
+
+        public async Task<ProductosVariantesDto> AddVarianteAsync(ProductosVariantesDto varianteDto)
+        {
+            var entidad = _mapper.Map<ProductosVariantes>(varianteDto);
+            _context.ProductosVariantes.Add(entidad);    
+            await _context.SaveChangesAsync();
+            return _mapper.Map<ProductosVariantesDto>(entidad);
         }
 
         public async Task DeleteAsync(int id)
         {
-            var producto = _context.Productos.Find(id);
+            var producto = await _context.Productos.FindAsync(id);
             if (producto != null)
             {
                 _context.Productos.Remove(producto);
@@ -37,28 +43,25 @@ namespace DrCell_V01.Services
             }
         }
 
-        public async Task<IEnumerable<Productos>> GetAllProductsAsync()
+        public async Task<IEnumerable<ProductoDto>> GetAllProductsAsync()
         {
-            return await _context.Productos
-                .Include(p => p.Variantes)
-                .AsNoTracking()
-                .ToListAsync();
+            var productos = await _context.Productos.Include(p => p.Variantes).AsNoTracking().ToListAsync();
+            return _mapper.Map<List<ProductoDto>>(productos);
         }
 
-        public async Task<IEnumerable<Productos>> GetAllVariantesAsync()
+        public async Task<IEnumerable<ProductosVariantesDto>> GetAllVariantesAsync()
         {
-            return await _context.Productos
-                .Include(p => p.Variantes)
-                .AsNoTracking()
-                .ToListAsync();
+            var variantes = await _context.ProductosVariantes.AsNoTracking().ToListAsync();
+            return _mapper.Map<List<ProductosVariantesDto>>(variantes);
         }
 
-        public async Task<Productos> GetByIdWithVarianteAsync(int id)
+        public async Task<ProductoDto> GetByIdWithVarianteAsync(int id)
         {
-            return await _context.Productos
+            var producto = await _context.Productos
                 .Include(p => p.Variantes)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == id);
+            return _mapper.Map<ProductoDto>(producto);
         }
             
         public async Task<IEnumerable<string>> GetDistintAlmacenamientosAsync(string ram, int productId)
@@ -83,35 +86,51 @@ namespace DrCell_V01.Services
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<ProductosVariantes>> GetVariantesByIdAsync(int productId)
+        public async Task<IEnumerable<ProductosVariantesDto>> GetVariantesByIdAsync(int productId)
         {
-            return await _context.ProductosVariantes
+            var variantes = await _context.ProductosVariantes
                 .Where(v => v.ProductoId == productId)
                 .AsNoTracking()
                 .ToListAsync();
+            return _mapper.Map<List<ProductosVariantesDto>>(variantes);
         }
 
-        public async Task<ProductosVariantes> GetVarianteSpecAsync(int productId, string ram, string storage, string color, string condicion)
+        public async Task<ProductosVariantesDto> GetVarianteSpecAsync(int productId, string ram, string storage, string color, string condicion)
         {
-            return await _context.ProductosVariantes
+            var variante = await _context.ProductosVariantes
                 .Where(v => v.ProductoId == productId)
                 .Where(v => v.Ram == ram)
-                .Where(v => v.Almacenamiento== storage)
+                .Where(v => v.Almacenamiento == storage)
                 .Where(v => v.Color == color)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
+            return _mapper.Map<ProductosVariantesDto>(variante);
         }
 
-        public async Task UpdateAsync(Productos productos)
+        public async Task UpdateAsync(ProductoDto productoDto)
         {
-            _context.Entry(productos).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            var entidad = await _context.Productos.Include(p => p.Variantes)
+                .FirstOrDefaultAsync(p => p.Id == productoDto.Id);
+
+            if (entidad != null)
+            {
+                _mapper.Map(productoDto, entidad);
+                _context.Productos.Update(entidad);
+                await _context.SaveChangesAsync();
+            }
         }
 
-        public async Task UpdateVarianteAsync(ProductosVariantes variante)
+        public async Task UpdateVarianteAsync(ProductosVariantesDto varianteDto)
         {
-            _context.Entry(variante).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            var entidad = await _context.ProductosVariantes
+                .FirstOrDefaultAsync(v => v.Id == varianteDto.Id);
+
+            if (entidad != null)
+            {
+                _mapper.Map(varianteDto, entidad);
+                _context.ProductosVariantes.Update(entidad);
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task DeleteVarianteAsync(int varianteId)

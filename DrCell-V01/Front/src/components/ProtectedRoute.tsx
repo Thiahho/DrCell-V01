@@ -1,19 +1,24 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuthStore } from '@/store/auth-store';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requiredRole?: 'admin' | 'user';
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const token = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
+  const { user } = useAuthStore();
+  const location = useLocation();
 
-  if (!token || user.rol !== 'ADMIN') {
-    return <Navigate to="/login" replace />;
+  if (!user) {
+    // Redirigir al login si no hay usuario
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (requiredRole && user.role !== requiredRole) {
+    // Redirigir al dashboard si el usuario no tiene el rol requerido
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
-};
-
-export default ProtectedRoute; 
+}; 
