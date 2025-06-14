@@ -15,8 +15,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Configuración de AutoMapper
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 // 2. Configuración de CORS más segura
 builder.Services.AddCors(options =>
@@ -99,6 +97,7 @@ builder.Services.AddScoped<IPinesService, PinesService>();
 builder.Services.AddScoped<IModulosService, ModulosService>();
 builder.Services.AddScoped<IBateriasService, BateriasService>();
 builder.Services.AddScoped<IProductoService, ProductosService>();
+builder.Services.AddAutoMapper(typeof(Program));
 
 var app = builder.Build();
 

@@ -11,7 +11,7 @@ namespace DrCell_V01.Services.Interface
         Task UpdateAsync(ProductoDto productos);
         Task DeleteAsync(int id);
         Task<IEnumerable<ProductosVariantesDto>> GetVariantesByIdAsync(int productId);
-        Task<ProductosVariantesDto> GetVarianteSpecAsync(int productId, string ram, string storage, string color, string condicion);
+        Task<ProductosVariantesDto> GetVarianteSpecAsync(int productId, string ram, string storage, string color);
         Task<IEnumerable<string>> GetDistintAlmacenamientosAsync(string ram, int productId);
         Task<IEnumerable<string>> GetDistintColorAsync(string ram, string almacenamiento, int productId);
         Task<IEnumerable<ProductoDto>> GetAllProductsAsync();

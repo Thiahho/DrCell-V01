@@ -142,7 +142,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSuccess })
 
       await Promise.all(variantesPromises);
       
-      toast.success('Producto y variantes creados exitosamente');
+      toast.success('¡Producto creado exitosamente!', {
+        description: 'El producto se ha guardado en el sistema.',
+        duration: 4000,
+      });
       onSuccess();
       onClose();
     } catch (error: any) {

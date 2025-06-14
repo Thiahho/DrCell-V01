@@ -49,10 +49,10 @@ namespace DrCell_V01.Services
             return _mapper.Map<List<ProductoDto>>(productos);
         }
 
-        public async Task<IEnumerable<ProductosVariantesDto>> GetAllVariantesAsync()
+        public async Task<IEnumerable<ProductoDto>> GetAllVariantesAsync()
         {
             var variantes = await _context.ProductosVariantes.AsNoTracking().ToListAsync();
-            return _mapper.Map<List<ProductosVariantesDto>>(variantes);
+            return _mapper.Map<List<ProductoDto>>(variantes);
         }
 
         public async Task<ProductoDto> GetByIdWithVarianteAsync(int id)
@@ -95,7 +95,7 @@ namespace DrCell_V01.Services
             return _mapper.Map<List<ProductosVariantesDto>>(variantes);
         }
 
-        public async Task<ProductosVariantesDto> GetVarianteSpecAsync(int productId, string ram, string storage, string color, string condicion)
+        public async Task<ProductosVariantesDto> GetVarianteSpecAsync(int productId, string ram, string storage, string color)
         {
             var variante = await _context.ProductosVariantes
                 .Where(v => v.ProductoId == productId)

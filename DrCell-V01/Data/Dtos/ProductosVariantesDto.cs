@@ -6,11 +6,24 @@ namespace DrCell_V01.Data.Dtos
 {
     public class ProductosVariantesDto
     {
+        public int Id { get; set; }
         public int ProductoId { get; set; }
-        public string Ram { get; set; }
-        public string Almacenamiento { get; set; }
-        public string Color { get; set; }
+
+        [Required(ErrorMessage = "La RAM es requerida")]
+        public string Ram { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El almacenamiento es requerido")]
+        public string Almacenamiento { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El color es requerido")]
+        public string Color { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El precio es requerido")]
+        [Range(0, double.MaxValue, ErrorMessage = "El precio debe ser mayor o igual a 0")]
         public decimal Precio { get; set; }
+
+        [Required(ErrorMessage = "El stock es requerido")]
+        [Range(0, int.MaxValue, ErrorMessage = "El stock debe ser mayor o igual a 0")]
         public int Stock { get; set; }
     }
 }
