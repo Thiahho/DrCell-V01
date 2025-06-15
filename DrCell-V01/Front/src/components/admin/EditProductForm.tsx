@@ -35,7 +35,7 @@ interface Variante {
   color: string;
   precio: number;
   stock: number;
-}
+}//
 
 const EditProductForm: React.FC<EditProductFormProps> = ({ isOpen, onClose, onSuccess, producto }) => {
   const [step, setStep] = useState(1);
