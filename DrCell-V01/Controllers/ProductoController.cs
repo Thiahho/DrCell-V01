@@ -12,12 +12,11 @@ namespace DrCell_V01.Controllers
     [ApiController]
     public class ProductoController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
         private readonly IProductoService _productoService;
-        public ProductoController(ApplicationDbContext context, IProductoService productoService)
+        
+        public ProductoController(IProductoService productoService)
         {
-            _context = context;
-           _productoService = productoService;
+            _productoService = productoService;
         }
 
         [AllowAnonymous]
@@ -31,7 +30,7 @@ namespace DrCell_V01.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
             }
         }
 
@@ -44,13 +43,13 @@ namespace DrCell_V01.Controllers
                 var producto = await _productoService.GetByIdWithVarianteAsync(id);
                 if (producto == null)
                 {
-                    return NotFound($"Producto with ID {id} not found.");
+                    return NotFound($"No se encontró el producto con ID {id}");
                 }
                 return Ok(producto);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
             }
         }
 
@@ -63,13 +62,13 @@ namespace DrCell_V01.Controllers
                 var variantes = await _productoService.GetVariantesByIdAsync(productoId);
                 if (variantes == null || !variantes.Any())
                 {
-                    return NotFound($"No variants found for Producto with ID {productoId}.");
+                    return NotFound($"No se encontraron variantes para el producto con ID {productoId}");
                 }
                 return Ok(variantes);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
             }
         }
 
@@ -82,14 +81,14 @@ namespace DrCell_V01.Controllers
                 var producto = await _productoService.GetByIdWithVarianteAsync(productoId);
                 if (producto == null)
                 {
-                    return NotFound($"No hay productos con RAM.");
+                    return NotFound($"No se encontró el producto con ID {productoId}");
                 }
-                var opciones= producto.GetAvailableRAM();
+                var opciones = producto.GetAvailableRAM();
                 return Ok(opciones);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
             }
         }
 
@@ -99,17 +98,17 @@ namespace DrCell_V01.Controllers
         {
             try
             {
-                var producto= await _productoService.GetByIdWithVarianteAsync(productoId);
+                var producto = await _productoService.GetByIdWithVarianteAsync(productoId);
                 if (producto == null)
                 {
-                    return NotFound($"No hay opciones de almacenamiento para el producto con ID {productoId} y RAM {ram}.");
+                    return NotFound($"No se encontró el producto con ID {productoId}");
                 }
                 var almacenamientos = producto.GetAvailableStorage(ram);
                 return Ok(almacenamientos);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
             }
         }
 
@@ -122,33 +121,37 @@ namespace DrCell_V01.Controllers
                 var producto = await _productoService.GetByIdWithVarianteAsync(productoId);
                 if (producto == null)
                 {
-                    return NotFound($"No hay opciones de color para el producto con ID {productoId}, RAM {ram} y almacenamiento {almacenamiento}.");
+                    return NotFound($"No se encontró el producto con ID {productoId}");
                 }
                 var colores = producto.GetAvailableColors(ram, almacenamiento);
                 return Ok(colores);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
             }
         }
 
         [AllowAnonymous]
         [HttpGet("{productId}/variante")]
-        public async Task<ActionResult<ProductosVariantesDto>> GetVarianteSpecAsync(int productId, [FromQuery] string ram, [FromQuery] string storage, [FromQuery] string color, [FromQuery] string condicion)
+        public async Task<ActionResult<ProductosVariantesDto>> GetVarianteSpecAsync(
+            int productId, 
+            [FromQuery] string ram, 
+            [FromQuery] string storage, 
+            [FromQuery] string color)
         {
             try
             {
-                var variante = await _productoService.GetVarianteSpecAsync(productId, ram, storage, color, condicion);
+                var variante = await _productoService.GetVarianteSpecAsync(productId, ram, storage, color);
                 if (variante == null)
                 {
-                    return NotFound($"No se encontró la variante con RAM {ram}, almacenamiento {storage}, color {color} y condición {condicion} para el producto con ID {productId}.");
+                    return NotFound($"No se encontró la variante con las especificaciones solicitadas");
                 }
                 return Ok(variante);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
             }
         }
 
@@ -158,12 +161,21 @@ namespace DrCell_V01.Controllers
         {
             try
             {
-                if (producto == null)
-                    return BadRequest("El producto no puede ser nulo");
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Verificar si ya existe un producto con la misma marca y modelo
+                var existe = await _productoService.ExistsProductoAsync(producto.Marca, producto.Modelo);
+                if (existe)
+                {
+                    return BadRequest("Ya existe un producto con la misma marca y modelo");
+                }
 
                 // Guardar el producto sin variantes primero
-                var variantes = producto.Variantes?.ToList() ?? new List<ProductosVariantes>();
-                producto.Variantes = new List<ProductosVariantes>();
+                var variantes = producto.Variantes?.ToList() ?? new List<ProductosVariantesDto>();
+                producto.Variantes = new List<ProductosVariantesDto>();
                 var nuevoProducto = await _productoService.AddAsync(producto);
 
                 // Si hay variantes, asociarlas y guardarlas
@@ -189,8 +201,22 @@ namespace DrCell_V01.Controllers
         {
             try
             {
-                if (variante == null)
-                    return BadRequest("La variante no puede ser nula");
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Verificar si ya existe una variante con las mismas especificaciones
+                var existe = await _productoService.ExistsVarianteAsync(
+                    productoId, 
+                    variante.Ram, 
+                    variante.Almacenamiento, 
+                    variante.Color);
+
+                if (existe)
+                {
+                    return BadRequest("Ya existe una variante con las mismas especificaciones");
+                }
 
                 variante.ProductoId = productoId;
                 var nuevaVariante = await _productoService.AddVarianteAsync(variante);
@@ -199,8 +225,7 @@ namespace DrCell_V01.Controllers
                         productId = productoId, 
                         ram = variante.Ram, 
                         storage = variante.Almacenamiento, 
-                        color = variante.Color,
-                        stock = variante.Stock
+                        color = variante.Color
                     }, 
                     nuevaVariante);
             }
@@ -216,12 +241,21 @@ namespace DrCell_V01.Controllers
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
                 if (id != producto.Id)
+                {
                     return BadRequest("El ID del producto no coincide");
+                }
 
                 var productoExistente = await _productoService.GetByIdWithVarianteAsync(id);
                 if (productoExistente == null)
+                {
                     return NotFound($"No se encontró el producto con ID {id}");
+                }
 
                 await _productoService.UpdateAsync(producto);
                 return NoContent();
@@ -240,7 +274,9 @@ namespace DrCell_V01.Controllers
             {
                 var producto = await _productoService.GetByIdWithVarianteAsync(id);
                 if (producto == null)
+                {
                     return NotFound($"No se encontró el producto con ID {id}");
+                }
 
                 await _productoService.DeleteAsync(id);
                 return NoContent();
@@ -257,22 +293,24 @@ namespace DrCell_V01.Controllers
         {
             try
             {
-                if (varianteId != variante.Id)
-                    return BadRequest("El ID de la variante no coincide");
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
 
                 var varianteExistente = await _productoService.GetVarianteSpecAsync(
                     productoId, 
                     variante.Ram, 
                     variante.Almacenamiento, 
-                    variante.Color,
-                    "Nuevo" // Asumiendo que es el valor por defecto
-                );
+                    variante.Color);
 
                 if (varianteExistente == null)
+                {
                     return NotFound($"No se encontró la variante con ID {varianteId}");
+                }
 
-                _context.Entry(variante).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
+                variante.ProductoId = productoId;
+                await _productoService.UpdateVarianteAsync(variante);
                 return NoContent();
             }
             catch (Exception ex)
@@ -287,14 +325,13 @@ namespace DrCell_V01.Controllers
         {
             try
             {
-                var variante = await _context.ProductosVariantes
-                    .FirstOrDefaultAsync(v => v.Id == varianteId && v.ProductoId == productoId);
-
+                var variante = await _productoService.GetVarianteSpecAsync(productoId, "", "", "");
                 if (variante == null)
+                {
                     return NotFound($"No se encontró la variante con ID {varianteId}");
+                }
 
-                _context.ProductosVariantes.Remove(variante);
-                await _context.SaveChangesAsync();
+                await _productoService.DeleteVarianteAsync(varianteId);
                 return NoContent();
             }
             catch (Exception ex)
