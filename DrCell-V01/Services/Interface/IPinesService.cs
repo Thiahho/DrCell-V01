@@ -9,5 +9,11 @@ namespace DrCell_V01.Services.Interface
         Task<List<object>> ObtenerPinesByMarcaAsync(string marca);
         Task<List<string>> ObtenerPinesByModeloAsync();
         Task<List<object>> ObtenerPinesByModeloYMarcaAsync(string marca, string modelo);
+
+        Task<Pines?> GetPinByIdAsync(int id);
+        Task UpdateAsync(Pines pin);
+        Task DeleteAsync(int id);
+        Task<bool> ExistsPinAsync(string marca, string modelo);
+        Task<Pines> AddAsync(Pines pin);
     }
 }

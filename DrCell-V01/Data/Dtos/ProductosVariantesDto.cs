@@ -1,6 +1,8 @@
+using DrCell_V01.Data.Modelos;
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace DrCell_V01.Data.Dtos
 {
@@ -25,5 +27,9 @@ namespace DrCell_V01.Data.Dtos
         [Required(ErrorMessage = "El stock es requerido")]
         [Range(0, int.MaxValue, ErrorMessage = "El stock debe ser mayor o igual a 0")]
         public int Stock { get; set; }
+
+        [JsonIgnore]
+        public ProductoDto? Producto { get; set; }
+
     }
 }

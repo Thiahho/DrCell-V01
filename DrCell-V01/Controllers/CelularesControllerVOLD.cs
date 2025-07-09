@@ -1,0 +1,145 @@
+﻿/* using DrCell_V01.Data;
+using DrCell_V01.Services.Interface;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace DrCell_V01.Controllers
+{
+    [Route("[controller]")]
+    [ApiController]
+    public class CelularesController : ControllerBase
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly ICelularesService _celularesService;
+        public CelularesController(ApplicationDbContext context, ICelularesService celularesService)
+        {
+            _context = context;
+            _celularesService = celularesService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCelulares()
+         => Ok(await _celularesService.ObtenerEquiposUnicosAsync());
+
+        [HttpGet("marcas")]
+        public async Task<IActionResult> GetMarcas()
+            => Ok(await _celularesService.ObtenerMarcasAsync());
+
+        [HttpGet("modelos")]
+        public async Task<IActionResult> GetModelos()
+            => Ok(await _celularesService.ObtenerModelosAsync());
+
+        [HttpGet("modelos/{marca}")]
+        public async Task<IActionResult> GetModelosPorMarca(string marca)
+            => Ok(await _celularesService.ObtenerModelosPorMarcaAsync(marca));
+
+        [HttpGet("celulares/buscar/{marca}/{modelo}")]
+        public async Task<IActionResult> GetModulosByModelo(string marca, string modelo)
+            => Ok(await _celularesService.ObtenerInfoPorMarcaYModeloAsync(marca, modelo));
+
+        [HttpGet("vista-completa")]
+        public async Task<IActionResult> GetVistaCompleta()
+        {
+            try
+            {
+                var resultado = await _context.vCelularesMBP
+                    .Take(50) // Limitar a 50 registros para no sobrecargar
+                    .Select(v => new
+                    {
+                        v.marca,
+                        v.modelo,
+                        arreglomodulo = v.costomodulo,
+                        arreglobateria = v.costobat,
+                        arreglopin = v.costopin,
+                        colormodulo = v.color,
+                        v.tipo,
+                        v.marco,
+                        v.version
+                    })
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Vista completa obtenida correctamente",
+                    count = resultado.Count,
+                    data = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Error al obtener la vista completa",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("buscar")]
+        public async Task<IActionResult> BuscarReparaciones([FromQuery] string? termino = null, [FromQuery] string? marca = null, [FromQuery] string? modelo = null)
+        {
+            try
+            {
+                var query = _context.vCelularesMBP.AsQueryable();
+
+                // Búsqueda por término general (marca o modelo)
+                if (!string.IsNullOrEmpty(termino))
+                {
+                    query = query.Where(v => 
+                        EF.Functions.ILike(v.marca, $"%{termino}%") || 
+                        EF.Functions.ILike(v.modelo, $"%{termino}%")
+                    );
+                }
+
+                // Búsqueda específica por marca
+                if (!string.IsNullOrEmpty(marca))
+                {
+                    query = query.Where(v => EF.Functions.ILike(v.marca, marca));
+                }
+
+                // Búsqueda específica por modelo
+                if (!string.IsNullOrEmpty(modelo))
+                {
+                    query = query.Where(v => EF.Functions.ILike(v.modelo, modelo));
+                }
+
+                var resultado = await query
+                    .Take(100) // Limitar resultados
+                    .Select(v => new
+                    {
+                        v.marca,
+                        v.modelo,
+                        arreglomodulo = v.costomodulo,
+                        arreglobateria = v.costobat,
+                        arreglopin = v.costopin,
+                        colormodulo = v.color,
+                        v.tipo,
+                        v.marco,
+                        v.version
+                    })
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Búsqueda realizada correctamente",
+                    count = resultado.Count,
+                    filters = new { termino, marca, modelo },
+                    data = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Error al realizar la búsqueda",
+                    error = ex.Message
+                });
+            }
+        }
+    }
+}
+ */

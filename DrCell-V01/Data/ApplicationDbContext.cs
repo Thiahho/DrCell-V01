@@ -66,7 +66,7 @@ namespace DrCell_V01.Data
             // Configuración de las vistas
             modelBuilder.Entity<vCelularesMBP>()
                 .HasNoKey()
-                .ToView("vcelularesmbp");
+                .ToView("vcelularmbp");
 
             modelBuilder.Entity<vCelularM>()
                 .HasNoKey()

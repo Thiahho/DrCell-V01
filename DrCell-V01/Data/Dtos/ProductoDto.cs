@@ -17,8 +17,8 @@ namespace DrCell_V01.Data.Dtos
         [Required(ErrorMessage = "La categoría es requerida")]
         public string Categoria { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "La imagen es requerida")]
-        public byte[] Img { get; set; } = Array.Empty<byte>();
+        // La imagen no es requerida para actualizaciones parciales
+        public string? Img { get; set; }
 
         public List<ProductosVariantesDto> Variantes { get; set; } = new();
 

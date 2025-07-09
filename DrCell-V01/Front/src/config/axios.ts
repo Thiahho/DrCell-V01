@@ -1,7 +1,15 @@
 import axios from 'axios';
 
+// Configuración dinámica de la URL base
+const getBaseURL = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.REACT_APP_API_URL || 'https://api.drcell.com';
+  }
+  return 'http://localhost:5015';
+};
+
 const api = axios.create({
-  baseURL: 'http://localhost:5015',
+  baseURL: getBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },

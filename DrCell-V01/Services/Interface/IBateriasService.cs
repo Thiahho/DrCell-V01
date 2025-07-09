@@ -9,5 +9,11 @@ namespace DrCell_V01.Services.Interface
         Task<List<object>> ObtenerBateriasByMarcaAsync(string marca);
         Task<List<string>> ObtenerBateriasByModeloAsync();
         Task<List<object>> ObtenerBateriasByModeloYMarcaAsync(string marca, string modelo);
+        Task<Baterias?> GetBateriaByIdAsync(int id);
+
+        Task UpdateAsync(Baterias bateria);
+        Task DeleteAsync(int id);
+        Task<bool> ExistsBateriaAsync(string marca, string modelo);
+        Task<Baterias> AddAsync(Baterias bateria);
     }
 }

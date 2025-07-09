@@ -1,11 +1,18 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuthStore } from '@/store/auth-store';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const token = localStorage.getItem('token');
-  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-  if (!token || usuario.rol !== 'ADMIN') {
-    return <Navigate to="/login" />;
+  const location = useLocation();
+  const { isAuthenticated, isAdmin } = useAuthStore();
+
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
+
+  if (!isAdmin()) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return <>{children}</>;
 };
 

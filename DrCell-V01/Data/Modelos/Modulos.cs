@@ -9,9 +9,9 @@ namespace DrCell_V01.Data.Modelos
         [Key]
         public int id { get; set; }
         [Column("marca")]
-        public string marca { get; set; }
+        public string? marca { get; set; }
         [Column("modelo")]
-        public string modelo { get; set; }
+        public string? modelo { get; set; }
         [Column("costo")]
         public decimal costo { get; set; }
         [Column("arreglo")]
@@ -21,7 +21,7 @@ namespace DrCell_V01.Data.Modelos
         [Column("marco")]
         public bool marco { get; set; }
         [Column("tipo")]
-        public string tipo { get; set; }
+        public string? tipo { get; set; }
         [Column("version")]
         public string? version { get; set; }
     }

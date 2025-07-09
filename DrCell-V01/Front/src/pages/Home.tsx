@@ -60,7 +60,7 @@ const Home: React.FC = () => {
       <section className="py-6 bg-blue-600 text-white text-center">
         <h2 className="text-xl md:text-2xl font-bold mb-2">¿Tienes dudas? ¡Escríbenos por WhatsApp!</h2>
         <a
-          href="https://wa.me/5491123456789"
+          href="https://wa.me/5491122692061"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-block mt-2 px-6 py-2 bg-white text-blue-600 font-semibold rounded-full shadow hover:bg-blue-100 transition"

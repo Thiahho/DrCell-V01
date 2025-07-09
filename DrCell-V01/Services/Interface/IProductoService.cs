@@ -1,4 +1,5 @@
-﻿using DrCell_V01.Data.Dtos;
+﻿using System.Threading.Tasks;
+using DrCell_V01.Data.Dtos;
 
 namespace DrCell_V01.Services.Interface
 {
@@ -12,6 +13,7 @@ namespace DrCell_V01.Services.Interface
         Task DeleteAsync(int id);
         Task<IEnumerable<ProductosVariantesDto>> GetVariantesByIdAsync(int productId);
         Task<ProductosVariantesDto> GetVarianteSpecAsync(int productId, string ram, string storage, string color);
+        Task<ProductosVariantesDto> GetVarianteByIdAsync(int varianteId);
         Task<IEnumerable<string>> GetDistintAlmacenamientosAsync(string ram, int productId);
         Task<IEnumerable<string>> GetDistintColorAsync(string ram, string almacenamiento, int productId);
         Task<IEnumerable<ProductoDto>> GetAllProductsAsync();

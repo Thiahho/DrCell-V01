@@ -11,24 +11,32 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configura DbContext
+// 🔑 Permitir lectura de variables desde .env y entorno
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables(); // <--- CLAVE PARA LEER .env
+
+// 1. Configuración del DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
-// 2. Configuración de CORS más segura
+// 2. Configuración de CORS dinámica
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    var allowedOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>()
+        ?? new[] { "http://localhost:3000" };
+
+    options.AddPolicy("ProductionCORS", policy =>
     {
-        policy.WithOrigins("http://localhost:3000") // Frontend React
-              .AllowAnyHeader()
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
+              .AllowAnyHeader()
               .AllowCredentials();
     });
 });
 
-// 3. Configuración de JWT más robusta
+// 3. Configuración de autenticación JWT
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -38,7 +46,10 @@ builder.Services.AddAuthentication(options =>
 .AddJwtBearer(options =>
 {
     options.SaveToken = true;
-    options.RequireHttpsMetadata = builder.Configuration.GetValue<bool>("Security:RequireHttpsMetadata");
+
+    // Seguridad: solo forzar HTTPS en producción
+    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
@@ -47,11 +58,11 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ClockSkew = TimeSpan.Zero,
-        ValidIssuer = builder.Configuration["JWTKey:ValidIssuer"],
-        ValidAudience = builder.Configuration["JWTKey:ValidAudience"],
+        ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+        ValidAudience = builder.Configuration["JWT:ValidAudience"],
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["JWTKey:Secret"] ?? 
-            throw new InvalidOperationException("JWT Secret not configured")))
+            Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]
+            ?? throw new InvalidOperationException("JWT Secret not configured")))
     };
 
     options.Events = new JwtBearerEvents
@@ -76,7 +87,8 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
     options.Secure = CookieSecurePolicy.Always;
 });
 
-// 5. Configuración de sesión segura
+// 5. Configuración de sesión
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -86,42 +98,46 @@ builder.Services.AddSession(options =>
     options.Cookie.SameSite = SameSiteMode.Strict;
 });
 
-// 6. Configuración de servicios
-builder.Services.AddControllersWithViews();
-builder.Services.AddAuthorization();
+// 5.1. Configuración de caché en memoria
+builder.Services.AddMemoryCache();
 
-// 7. Registro de servicios de la aplicación
+// 6. Servicios de la aplicación
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddAuthorization();
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddSwaggerGen();
+
+// 7. Inyección de dependencias personalizadas
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ICelularesService, EquiposService>();
 builder.Services.AddScoped<IPinesService, PinesService>();
 builder.Services.AddScoped<IModulosService, ModulosService>();
 builder.Services.AddScoped<IBateriasService, BateriasService>();
+builder.Services.AddScoped<IvCelularesInfoService, vCelularesInfoService>();
 builder.Services.AddScoped<IProductoService, ProductosService>();
-builder.Services.AddAutoMapper(typeof(Program));
 
 var app = builder.Build();
 
-// 8. Configuración del pipeline HTTP
+// 8. Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+else
+{
+    app.UseHttpsRedirection(); // Redirección a HTTPS en producción
 }
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseCors();
-
+app.UseCors("ProductionCORS");
 app.UseCookiePolicy();
 app.UseSession();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
 app.MapControllers();
-
 app.Run();

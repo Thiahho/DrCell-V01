@@ -16,7 +16,34 @@ namespace DrCell_V01.Services
             _context = applicationDbContext;
             _mapper = mapper;
         }
+        public async Task<ProductosVariantesDto?> GetVarianteByIdAsync(int varianteId)
+        {
+            var variante = await _context.ProductosVariantes
+                .Include(pv => pv.Producto)
+                .FirstOrDefaultAsync(pv => pv.Id == varianteId);
 
+            if (variante == null)
+                return null;
+
+            return new ProductosVariantesDto
+            {
+                Id = variante.Id,
+                ProductoId = variante.ProductoId,
+                Ram = variante.Ram,
+                Almacenamiento = variante.Almacenamiento,
+                Color = variante.Color,
+                Stock = variante.Stock,
+                Precio = variante.Precio,
+                Producto = new ProductoDto
+                {
+                    Id = variante.Producto.Id,
+                    Marca = variante.Producto.Marca,
+                    Modelo = variante.Producto.Modelo,
+                    //Descripcion = variante.Producto.Descripcion,
+                    Img = variante.Producto.Img  !=null ? Convert.ToBase64String(variante.Producto.Img) : null,
+                }
+            };
+        }
         public async Task<ProductoDto> AddAsync(ProductoDto productoDto)
         {
             var entidad = _mapper.Map<Productos>(productoDto);
@@ -57,11 +84,36 @@ namespace DrCell_V01.Services
 
         public async Task<ProductoDto> GetByIdWithVarianteAsync(int id)
         {
+            //var producto = await _context.Productos
+            //    .Include(p => p.Variantes)
+            //    .AsNoTracking()
+            //    .FirstOrDefaultAsync(p => p.Id == id);
+            //return _mapper.Map<ProductoDto>(producto);
             var producto = await _context.Productos
-                .Include(p => p.Variantes)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == id);
-            return _mapper.Map<ProductoDto>(producto);
+       .Include(p => p.Variantes)
+       .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (producto == null) return null;
+
+            return new ProductoDto
+            {
+                Id = producto.Id,
+                Marca = producto.Marca,
+                Modelo = producto.Modelo,
+                Categoria = producto.Categoria,
+                Img = producto.Img != null ? Convert.ToBase64String(producto.Img) : null,
+                Variantes = producto.Variantes.Select(v => new ProductosVariantesDto
+                {
+                    Id = v.Id,
+                    ProductoId = v.ProductoId,
+                    Ram = v.Ram,
+                    Almacenamiento = v.Almacenamiento,
+                    Color = v.Color,
+                    Precio = v.Precio,
+                    Stock = v.Stock
+                    // No incluir Producto aquí
+                }).ToList()
+            };
         }
             
         public async Task<IEnumerable<string>> GetDistintAlmacenamientosAsync(string ram, int productId)
@@ -88,11 +140,33 @@ namespace DrCell_V01.Services
 
         public async Task<IEnumerable<ProductosVariantesDto>> GetVariantesByIdAsync(int productId)
         {
+            Console.WriteLine($"GetVariantesByIdAsync llamado con productId: {productId}");
+            
             var variantes = await _context.ProductosVariantes
                 .Where(v => v.ProductoId == productId)
                 .AsNoTracking()
                 .ToListAsync();
-            return _mapper.Map<List<ProductosVariantesDto>>(variantes);
+            
+            Console.WriteLine($"Variantes encontradas en BD: {variantes.Count}");
+            foreach (var v in variantes)
+            {
+                Console.WriteLine($"Variante ID: {v.Id}, RAM: {v.Ram}, Almacenamiento: {v.Almacenamiento}, Color: {v.Color}");
+            }
+            
+            // Mapeo manual para evitar problemas con AutoMapper
+            var result = variantes.Select(v => new ProductosVariantesDto
+            {
+                Id = v.Id,
+                ProductoId = v.ProductoId,
+                Ram = v.Ram,
+                Almacenamiento = v.Almacenamiento,
+                Color = v.Color,
+                Precio = v.Precio,
+                Stock = v.Stock
+            }).ToList();
+            
+            Console.WriteLine($"Variantes mapeadas: {result.Count}");
+            return result;
         }
 
         public async Task<ProductosVariantesDto> GetVarianteSpecAsync(int productId, string ram, string storage, string color)
@@ -109,12 +183,17 @@ namespace DrCell_V01.Services
 
         public async Task UpdateAsync(ProductoDto productoDto)
         {
-            var entidad = await _context.Productos.Include(p => p.Variantes)
+            var entidad = await _context.Productos
                 .FirstOrDefaultAsync(p => p.Id == productoDto.Id);
 
             if (entidad != null)
             {
-                _mapper.Map(productoDto, entidad);
+                entidad.Marca = productoDto.Marca;
+                entidad.Modelo = productoDto.Modelo;
+                entidad.Categoria = productoDto.Categoria;
+                if (!string.IsNullOrEmpty(productoDto.Img))
+                    entidad.Img = Convert.FromBase64String(productoDto.Img);
+
                 _context.Productos.Update(entidad);
                 await _context.SaveChangesAsync();
             }
@@ -127,7 +206,11 @@ namespace DrCell_V01.Services
 
             if (entidad != null)
             {
-                _mapper.Map(varianteDto, entidad);
+                entidad.Ram = varianteDto.Ram;
+                entidad.Almacenamiento = varianteDto.Almacenamiento;
+                entidad.Color = varianteDto.Color;
+                entidad.Precio = varianteDto.Precio;
+                entidad.Stock = varianteDto.Stock;
                 _context.ProductosVariantes.Update(entidad);
                 await _context.SaveChangesAsync();
             }

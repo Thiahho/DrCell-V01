@@ -28,6 +28,8 @@ namespace DrCell_V01.Services
             return await _context.Celulares
                 .AsNoTracking()
                 .Select(m => m.marca)
+                .Where(m => !string.IsNullOrEmpty(m))
+                .Cast<string>()
                 .Distinct()
                 .ToListAsync();
         }
@@ -37,6 +39,8 @@ namespace DrCell_V01.Services
             return await _context.Celulares
                 .AsNoTracking()
                 .Select(m => m.modelo)
+                .Where(m => !string.IsNullOrEmpty(m))
+                .Cast<string>()
                 .Distinct()
                 .ToListAsync();
         }
@@ -46,6 +50,8 @@ namespace DrCell_V01.Services
             return await _context.Celulares
                 .Where(c => c.marca == marca)
                 .Select(m => m.modelo)
+                .Where(m => !string.IsNullOrEmpty(m))
+                .Cast<string>()
                 .Distinct()
                 .ToListAsync();
         }
@@ -53,19 +59,20 @@ namespace DrCell_V01.Services
         public async Task<List<object>> ObtenerInfoPorMarcaYModeloAsync(string marca, string modelo)
         {
             return await _context.vCelularesMBP
-                .Where(c => EF.Functions.ILike(c.marca, marca) && EF.Functions.ILike(c.modelo, modelo))
+                .Where(c => c.marca != null && c.modelo != null && 
+                           EF.Functions.ILike(c.marca, marca) && EF.Functions.ILike(c.modelo, modelo))
                 .Select(m => new
                 {
                     m.marca,
                     m.modelo,
                     m.arreglomodulo,
-                    m.arreglobateria,
+                    m.arreglobat,
                     m.arreglopin,
-                    m.colormodulo,
+                    m.color,
                     m.tipo,
                     m.marco,
-                    m.version,
-                    m.id
+                    m.placa,
+                    m.version
                 }).Cast<object>()
                 .ToListAsync();
         }

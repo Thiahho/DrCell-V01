@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
+
 
 namespace DrCell_V01.Data.Modelos
 {
@@ -24,7 +26,7 @@ namespace DrCell_V01.Data.Modelos
         [Column("precio")]
         [Required]
         public decimal Precio { get; set; }
-
+        [JsonIgnore]
         public Productos? Producto { get; set; }
 
 

@@ -29,7 +29,7 @@ namespace DrCell_V01.Services
             _logger = logger;
         }
 
-        public async Task<Usuario> ValidarCredencialesAsync(string email, string password)
+        public async Task<Usuario?> ValidarCredencialesAsync(string email, string password)
         {
             try
             {
@@ -52,13 +52,10 @@ namespace DrCell_V01.Services
                 }
 
                 _logger.LogInformation($"Usuario encontrado. Verificando contraseña...");
-                _logger.LogInformation($"Hash almacenado: {usuario.ClaveHash}");
-                _logger.LogInformation($"Contraseña recibida: {password}");
 
                 try
                 {
                     bool claveOk = BCrypt.Net.BCrypt.Verify(password, usuario.ClaveHash);
-                    _logger.LogInformation($"Resultado de verificación: {claveOk}");
                     
                     if (!claveOk)
                     {
@@ -116,7 +113,7 @@ namespace DrCell_V01.Services
             }
         }
 
-        public async Task<Usuario> ObtenerUsuarioPorEmailAsync(string email)
+        public async Task<Usuario?> ObtenerUsuarioPorEmailAsync(string email)
         {
             try
             {
@@ -149,7 +146,6 @@ namespace DrCell_V01.Services
                 usuario.Rol ??= "USER";
 
                 _logger.LogInformation($"Creando usuario: {usuario.Email}");
-                _logger.LogInformation($"Hash generado: {usuario.ClaveHash}");
 
                 _context.Usuarios.Add(usuario);
                 await _context.SaveChangesAsync();

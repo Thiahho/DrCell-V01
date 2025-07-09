@@ -9,8 +9,8 @@ namespace DrCell_V01.Data.Modelos
         [Key]
         public int id { get; set; }
         [Column("marca")]
-        public string marca { get; set; }
+        public string? marca { get; set; }
         [Column("modelo")]
-        public string modelo { get; set; }
+        public string? modelo { get; set; }
     }
 }

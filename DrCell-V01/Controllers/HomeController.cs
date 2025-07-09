@@ -18,7 +18,7 @@ namespace DrCell_V01.Controllers
 
         public IActionResult Index()
         {
-            var Marcas = _context.Celulares.Select(c => c.marca).Distinct().ToList();
+            var Marcas = _context.Celulares.Select(c => c.marca).Where(m => !string.IsNullOrEmpty(m)).Distinct().ToList();
             ViewBag.marca = Marcas;
             var viewModel = new PresupuestoConsultaViewModel();
             return View(viewModel);
@@ -59,7 +59,7 @@ namespace DrCell_V01.Controllers
             var jsonString = JsonSerializer.Serialize(modelo);
             HttpContext.Session.SetString("Presupuesto", jsonString);
 
-            ViewBag.Marcas = _context.Celulares.Select(c => c.marca).Distinct().ToList();
+            ViewBag.Marcas = _context.Celulares.Select(c => c.marca).Where(m => !string.IsNullOrEmpty(m)).Distinct().ToList();
             return View("Index", modelo);
         }
 
@@ -88,6 +88,7 @@ namespace DrCell_V01.Controllers
             var modelos = _context.Celulares
                 .Where(c => c.marca == Marca)
                 .Select(c => c.modelo)
+                .Where(m => !string.IsNullOrEmpty(m))
                 .Distinct()
                 .ToList();
 

@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    # 🔒 No expongas el puerto si no necesitas acceso externo
+    # ports:
+    #   - "5432:5432"
+
+  backend:
+    build: ./backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ConnectionStrings__DefaultConnection: ${DefaultConnection}
+      JWT__Secret: ${JWT__Secret}
+      JWT__ValidIssuer: ${JWT__ValidIssuer}
+      JWT__ValidAudience: ${JWT__ValidAudience}
+      JWT__TokenExpiryTimeInHour: ${JWT__TokenExpiryTimeInHour}
+      JWT__RefreshTokenExpiryTimeInDays: ${JWT__RefreshTokenExpiryTimeInDays}
+      CORS__AllowedOrigins: ${CORS__AllowedOrigins}
+    depends_on:
+      - db
+    ports:
+      - "5000:80" # expone el backend en el puerto 5000 externo
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80" # expone el frontend en el puerto 3000 externo
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
