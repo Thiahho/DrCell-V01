@@ -102,7 +102,11 @@ namespace DrCell_V01.Services
 
         public async Task<bool> ExistsPinAsync(string marca, string modelo)
         {
-            return await _context.Pines.AnyAsync(p => p.marca == marca && p.modelo == modelo);
+            if (string.IsNullOrEmpty(marca) || string.IsNullOrEmpty(modelo))
+                return false;
+                
+            return await _context.Pines
+                .AnyAsync(p => p.marca == marca && p.modelo == modelo);
         }
 
         public async Task<Pines> AddAsync(Pines pin)

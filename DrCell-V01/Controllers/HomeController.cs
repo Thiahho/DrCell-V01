@@ -32,8 +32,8 @@ namespace DrCell_V01.Controllers
                 .Where(x => x.marca == modelo.Marca && x.modelo == modelo.Modelo)
                 .Select(m => new ModuloOpcionViewModel
                 {
-                    Color = m.color,
-                    Tipo = m.tipo,
+                    Color = m.color ?? "",
+                    Tipo = m.tipo ?? "",
                     ConMarco = m.marco,
                     Arreglo = m.arreglo
                 }).ToList();

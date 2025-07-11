@@ -98,6 +98,9 @@ namespace DrCell_V01.Services
 
         public async Task<bool> ExistsBateriaAsync(string marca, string modelo)
         {
+            if (string.IsNullOrEmpty(marca) || string.IsNullOrEmpty(modelo))
+                return false;
+                
             return await _context.Baterias
                 .AnyAsync(b => b.marca == marca && b.modelo == modelo);
         }

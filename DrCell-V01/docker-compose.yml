@@ -28,7 +28,7 @@ services:
     depends_on:
       - db
     ports:
-      - "5000:80" # expone el backend en el puerto 5000 externo
+      - "5015:80" # expone el backend en el puerto 5000 externo
 
   frontend:
     build: ./frontend

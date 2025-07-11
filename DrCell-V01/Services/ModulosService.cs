@@ -113,7 +113,11 @@ namespace DrCell_V01.Services
 
         public async Task<bool> ExistsModuloAsync(string marca, string modelo)
         {
-            return await _context.Modulos.AnyAsync(m => m.marca == marca && m.modelo == modelo);
+            if (string.IsNullOrEmpty(marca) || string.IsNullOrEmpty(modelo))
+                return false;
+                
+            return await _context.Modulos
+                .AnyAsync(m => m.marca == marca && m.modelo == modelo);
         }
 
         public async Task<Modulos> AddAsync(Modulos modulo)

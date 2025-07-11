@@ -6,9 +6,9 @@ namespace DrCell_V01.Data.Modelos
     public class Rol 
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string NormalizedName { get; set; }
-        public string ConcurrencyStamp { get; set; }
+        public required string Name { get; set; }
+        public required string NormalizedName { get; set; }
+        public required string ConcurrencyStamp { get; set; }
         // Constructor por defecto
         public Rol() { }
         // Constructor con parámetros

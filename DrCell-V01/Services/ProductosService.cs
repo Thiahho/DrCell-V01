@@ -22,7 +22,7 @@ namespace DrCell_V01.Services
                 .Include(pv => pv.Producto)
                 .FirstOrDefaultAsync(pv => pv.Id == varianteId);
 
-            if (variante == null)
+            if (variante == null || variante.Producto == null)
                 return null;
 
             return new ProductosVariantesDto
@@ -82,7 +82,7 @@ namespace DrCell_V01.Services
             return _mapper.Map<List<ProductoDto>>(variantes);
         }
 
-        public async Task<ProductoDto> GetByIdWithVarianteAsync(int id)
+        public async Task<ProductoDto?> GetByIdWithVarianteAsync(int id)
         {
             //var producto = await _context.Productos
             //    .Include(p => p.Variantes)
@@ -169,7 +169,7 @@ namespace DrCell_V01.Services
             return result;
         }
 
-        public async Task<ProductosVariantesDto> GetVarianteSpecAsync(int productId, string ram, string storage, string color)
+        public async Task<ProductosVariantesDto?> GetVarianteSpecAsync(int productId, string ram, string storage, string color)
         {
             var variante = await _context.ProductosVariantes
                 .Where(v => v.ProductoId == productId)
@@ -178,6 +178,10 @@ namespace DrCell_V01.Services
                 .Where(v => v.Color == color)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
+                
+            if (variante == null)
+                return null;
+                
             return _mapper.Map<ProductosVariantesDto>(variante);
         }
 

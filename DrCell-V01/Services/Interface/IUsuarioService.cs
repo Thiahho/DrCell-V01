@@ -5,9 +5,9 @@ namespace DrCell_V01.Services.Interface
 {
     public interface IUsuarioService
     {
-        public Task<Usuario> ValidarCredencialesAsync(string userName, string password);
+        public Task<Usuario?> ValidarCredencialesAsync(string userName, string password);
         public Task<Usuario> CrearUsuarioAsync(Usuario usuario);
-        public Task<Usuario> ObtenerUsuarioPorEmailAsync(string email);
+        public Task<Usuario?> ObtenerUsuarioPorEmailAsync(string email);
         public string GenerarToken(Usuario usuario);
 
         public Task ActualizarProductoAsync(Productos producto, int id);

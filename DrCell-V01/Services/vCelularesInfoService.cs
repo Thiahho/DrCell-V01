@@ -88,7 +88,7 @@ namespace DrCell_V01.Services
                 _cache.Set(cacheKey, resultado, cacheOptions);
                 
                 _logger.LogInformation("Marcas obtenidas y cacheadas. Total: {Count}", resultado.Count);
-                return resultado;
+                return resultado ?? new List<string>();
             }
             catch (Exception ex)
             {
@@ -115,7 +115,6 @@ namespace DrCell_V01.Services
                     .AsNoTracking()
                     .Select(v => v.modelo)
                     .Where(m => !string.IsNullOrEmpty(m))
-                    .Cast<string>()
                     .Distinct()
                     .OrderBy(m => m)
                     .ToListAsync();
@@ -126,7 +125,7 @@ namespace DrCell_V01.Services
                 _cache.Set(cacheKey, resultado, cacheOptions);
                 
                 _logger.LogInformation("Modelos obtenidos y cacheados. Total: {Count}", resultado.Count);
-                return resultado;
+                return resultado ?? new List<string>();
             }
             catch (Exception ex)
             {
@@ -160,7 +159,6 @@ namespace DrCell_V01.Services
                     .Where(v => v.marca == marca)
                     .Select(v => v.modelo)
                     .Where(m => !string.IsNullOrEmpty(m))
-                    .Cast<string>()
                     .Distinct()
                     .OrderBy(m => m)
                     .ToListAsync();
@@ -171,7 +169,7 @@ namespace DrCell_V01.Services
                 _cache.Set(cacheKey, resultado, cacheOptions);
                 
                 _logger.LogInformation("Modelos obtenidos para marca {Marca}. Total: {Count}", marca, resultado.Count);
-                return resultado;
+                return resultado ?? new List<string>();
             }
             catch (Exception ex)
             {
@@ -229,13 +227,12 @@ namespace DrCell_V01.Services
                     .Where(v => v.modelo == modelo)
                     .Select(m => m.marca)
                     .Where(m => !string.IsNullOrEmpty(m))
-                    .Cast<string>()
                     .Distinct()
                     .OrderBy(m => m)
                     .ToListAsync();
 
                 _logger.LogInformation("Marcas obtenidas para modelo {Modelo}. Total: {Count}", modelo, resultado.Count);
-                return resultado;
+                return resultado ?? new List<string>();
             }
             catch (Exception ex)
             {

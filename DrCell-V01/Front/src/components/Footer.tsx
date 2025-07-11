@@ -29,7 +29,7 @@ const Footer: React.FC = () => {
         <div className="border-t border-white/20 mb-8"></div>
 
         {/* Contenido principal */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
           {/* Columna 1 - Información de la empresa */}
           <div className="lg:col-span-1">
             <h4 className="text-3x1 text-[#217AB6] font-bold mb-4">
@@ -45,7 +45,7 @@ const Footer: React.FC = () => {
             </p>
           </div>
 
-          {/* Columna 2 - Mi Cuenta */}
+          {/* Columna 2 - Mi Cuenta
           <div>
             <h5 className="font-semibold text-lg mb-4">Mi Cuenta</h5>
             <ul className="space-y-2">
@@ -63,7 +63,7 @@ const Footer: React.FC = () => {
              
             </ul>
           </div>
-
+          */}
           {/* Columna 3 - Soporte */}
           <div>
             <h5 className="font-semibold text-lg mb-4">Soporte</h5>
@@ -73,26 +73,14 @@ const Footer: React.FC = () => {
                   FAQ
                 </a>
               </li>
+              
               <li>
-                <a href="#" className="text-white/70 hover:text-white transition-colors duration-200 text-sm">
-                  Enviar mensaje
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-white/70 hover:text-white transition-colors duration-200 text-sm">
+                <a onClick={handleWhatsAppOrder} className="text-white/70 hover:text-white transition-colors duration-200 text-sm">
                   Hablar con expertos
                 </a>
               </li>
-              <li>
-                <a href="#" className="text-white/70 hover:text-white transition-colors duration-200 text-sm">
-                  Agendar llamada
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-white/70 hover:text-white transition-colors duration-200 text-sm">
-                  Reclamos
-                </a>
-              </li>
+             
+              
             </ul>
           </div>
 
@@ -105,11 +93,7 @@ const Footer: React.FC = () => {
                   Condiciones
                 </a>
               </li>
-              <li>
-                <a href="#" className="text-white/70 hover:text-white transition-colors duration-200 text-sm">
-                  Política de privacidad
-                </a>
-              </li>
+             
               
             </ul>
            

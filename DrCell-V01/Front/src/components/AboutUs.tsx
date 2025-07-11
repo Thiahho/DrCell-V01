@@ -4,15 +4,27 @@ const images = [
   { src: '/img/Local1.jpeg', alt: 'Frente del local DrCell' },
   { src: '/img/Local2.jpeg', alt: 'Vista lateral del local DrCell' }
 ];
+const images2 = [
+  { src: '/img/Local3.jpeg', alt: 'Interior del local DrCell' },
+  { src: '/img/Local4.jpeg', alt: 'Interior del local DrCell' }
+];
 
 const AboutUs = () => {
   const [currentImage, setCurrentImage] = useState(0);
+  const [currentImage2, setCurrentImage2] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImage((prev) => (prev + 1) % images.length);
-    }, 5000);
+    }, 4000); // Cambia imagen cada 4 segundos
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const interval2 = setInterval(() => {
+      setCurrentImage2((prev) => (prev + 1) % images2.length);
+    }, 5000); // Cambia imagen cada 5 segundos (diferente tiempo para variar)
+    return () => clearInterval(interval2);
   }, []);
 
   const handleNextImage = () => {
@@ -21,6 +33,14 @@ const AboutUs = () => {
 
   const handlePrevImage = () => {
     setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const handleNextImage2 = () => {
+    setCurrentImage2((prev) => (prev + 1) % images2.length);
+  };
+
+  const handlePrevImage2 = () => {
+    setCurrentImage2((prev) => (prev - 1 + images2.length) % images2.length);
   };
 
   return (
@@ -85,8 +105,43 @@ const AboutUs = () => {
 
         {/* Seccion Nuestros Pilares */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-24">
-          <div className="flex justify-center">
-            <img src="/img/Local3.jpeg" alt="Interior del local DrCell" className="rounded-lg shadow-lg max-w-xs w-full h-auto object-cover"/>
+          <div className="relative w-full flex items-center justify-center my-4">
+            {/* Imagen principal del segundo carrusel */}
+            <img
+              src={images2[currentImage2].src}
+              alt={images2[currentImage2].alt}
+              className="rounded-lg shadow-lg max-w-xs w-full h-auto object-cover transition-opacity duration-700"
+            />
+            {/* Botón anterior */}
+            <button
+              onClick={handlePrevImage2}
+              aria-label="Imagen anterior del interior"
+              className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-[#17436b] font-bold rounded-full p-2 shadow transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#217AB6]"
+              tabIndex={0}
+            >
+              &larr;
+            </button>
+            {/* Botón siguiente */}
+            <button
+              onClick={handleNextImage2}
+              aria-label="Siguiente imagen del interior"
+              className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-[#17436b] font-bold rounded-full p-2 shadow transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#217AB6]"
+              tabIndex={0}
+            >
+              &rarr;
+            </button>
+            {/* Indicadores */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+              {images2.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentImage2(idx)}
+                  aria-label={`Ver imagen ${idx + 1} del interior`}
+                  className={`w-3 h-3 rounded-full border-2 border-[#217AB6] ${currentImage2 === idx ? 'bg-[#217AB6]' : 'bg-white'}`}
+                  tabIndex={0}
+                />
+              ))}
+            </div>
           </div>
           <div className="text-left">
             <h2 className="text-5xl font-bold text-[#17436b] mb-6">Nuestros pilares</h2>
@@ -95,9 +150,9 @@ const AboutUs = () => {
               <li><strong className="font-semibold text-[#217AB6]">Diagnóstico claro:</strong> Te explicamos el problema sin tecnicismos innecesarios.</li>
               <li><strong className="font-semibold text-[#217AB6]">Garantía real:</strong> 15 días en todas las reparaciones.</li>
             </ul>
-            <button className="mt-8 bg-[#17436b] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#17436b] transition duration-300 transform hover:scale-105">
+            {/* <button className="mt-8 bg-[#17436b] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#17436b] transition duration-300 transform hover:scale-105">
               Contactanos &rarr;
-            </button>
+            </button> */}
           </div>
         </div>
 
