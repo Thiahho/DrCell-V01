@@ -6,9 +6,7 @@ const TerminosYCondiciones: React.FC = () => {
       <div className="max-w-8xl w-full px-4 md:px-3">
         {/* Encabezado */}
         <h1 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">Términos y condiciones de nuestra garantía</h1>
-        {/*<p className="text-white text-center text-base md:text-lg mb-8 max-w-3xl mx-auto">
-          Los servicios de reparación y mantenimiento de celulares ofrecidos en este sitio web son realizados por DrCell en Av. del Libertador 152, local 106, Moreno, Provincia de Buenos Aires y Av. Alcorta 2862, local 20, Moreno, Provincia de Buenos Aires, a través de una orden de servicio solicitada, cuya aceptación establece la comprensión de los términos y condiciones de nuestra garantía.
-        </p>*/}
+       
         {/* Card de términos */}
         <br />
         <div className="bg-white rounded-xl shadow-lg p-6 md:p-10 mb-8">

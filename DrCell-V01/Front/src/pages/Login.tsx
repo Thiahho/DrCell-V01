@@ -10,7 +10,7 @@ import { Label } from '@radix-ui/react-label';
 export const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setToken, setUser } = useAuthStore();
+  const { setUser } = useAuthStore();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -31,13 +31,10 @@ export const Login = () => {
   
     try {
       const response = await axios.post('/Admin/login', formData);
-      const { token, usuario } = response.data;
+      const { usuario, message } = response.data;
       
-      // Guardar token en localStorage
-      localStorage.setItem('token', token);
-      
-      // Actualizar el estado global
-      setToken(token);
+      // 🔑 Ya no manejamos tokens - las cookies httpOnly se establecen automáticamente
+      // Solo actualizamos el estado del usuario
       setUser({
         id: usuario.id,
         email: usuario.email,
@@ -51,7 +48,7 @@ export const Login = () => {
         navigate('/dashboard');
       }
 
-      toast.success('Inicio de sesión exitoso');
+      toast.success(message || 'Inicio de sesión exitoso');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Error al iniciar sesión');
     } finally {

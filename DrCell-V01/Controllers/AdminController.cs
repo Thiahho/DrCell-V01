@@ -11,12 +11,14 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BCrypt.Net;
-
+using Microsoft.AspNetCore.RateLimiting;
+using DrCell_V01.Middleware;
 namespace DrCell_V01.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    //[Authorize(Roles = "ADMIN")]
+    [Authorize(Roles = "ADMIN")]
+    [EnableRateLimiting("AuthPolicy")]
     public class AdminController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -32,6 +34,7 @@ namespace DrCell_V01.Controllers
         }
 
         [HttpPost("registro")]
+         [RateLimit("registro", 2, 10)]
         public async Task<IActionResult> CrearAdmin([FromBody] Usuario usuario)
         {
             try
@@ -64,6 +67,8 @@ namespace DrCell_V01.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
+        [RateLimit("login", 3, 5)]
         public async Task<IActionResult> Login([FromBody] Auth auth)
         {
             try
@@ -87,9 +92,27 @@ namespace DrCell_V01.Controllers
 
                 var token = _usuarioService.GenerarToken(usuario);
                 
+                // Configurar cookie httpOnly
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true, // Solo en HTTPS
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTimeOffset.UtcNow.AddHours(24), // Expira en 24 horas
+                    Path = "/"
+                };
+
+                // En desarrollo, permitir HTTP
+                if (_configuration["ASPNETCORE_ENVIRONMENT"] == "Development")
+                {
+                    cookieOptions.Secure = false;
+                }
+
+                Response.Cookies.Append("AuthToken", token, cookieOptions);
+                
                 return Ok(new 
                 {
-                    token = token,
+                    message = "Inicio de sesión exitoso",
                     usuario = new
                     {
                         id = usuario.Id,
@@ -101,6 +124,57 @@ namespace DrCell_V01.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error al iniciar sesión", error = ex.Message });
+            }
+        }
+
+        [HttpPost("logout")]
+        [AllowAnonymous]
+        public IActionResult Logout()
+        {
+            try
+            {
+                // Eliminar cookie de autenticación
+                Response.Cookies.Delete("AuthToken");
+                
+                return Ok(new { message = "Sesión cerrada exitosamente" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al cerrar sesión", error = ex.Message });
+            }
+        }
+
+        [HttpGet("verify")]
+        [AllowAnonymous]
+        public IActionResult VerifySession()
+        {
+            try
+            {
+                // Verificar si hay token en cookies
+                if (Request.Cookies.TryGetValue("AuthToken", out var token))
+                {
+                    // El middleware JwtCookieMiddleware ya habrá validado el token
+                    // Si llegamos aquí y hay token, significa que es válido
+                    if (User.Identity?.IsAuthenticated == true)
+                    {
+                        return Ok(new 
+                        { 
+                            isAuthenticated = true,
+                            usuario = new
+                            {
+                                id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                                email = User.FindFirst(ClaimTypes.Email)?.Value,
+                                rol = User.FindFirst(ClaimTypes.Role)?.Value
+                            }
+                        });
+                    }
+                }
+                
+                return Ok(new { isAuthenticated = false });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al verificar sesión", error = ex.Message });
             }
         }
 

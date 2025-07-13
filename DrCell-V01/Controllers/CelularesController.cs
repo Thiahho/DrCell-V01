@@ -2,11 +2,12 @@
 using DrCell_V01.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.AspNetCore.RateLimiting;
 namespace DrCell_V01.Controllers
 {
     [Route("[controller]")]
     [ApiController]
+    [EnableRateLimiting("AuthPolicy")]
     public class CelularesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

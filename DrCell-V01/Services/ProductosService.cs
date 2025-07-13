@@ -39,7 +39,6 @@ namespace DrCell_V01.Services
                     Id = variante.Producto.Id,
                     Marca = variante.Producto.Marca,
                     Modelo = variante.Producto.Modelo,
-                    //Descripcion = variante.Producto.Descripcion,
                     Img = variante.Producto.Img  !=null ? Convert.ToBase64String(variante.Producto.Img) : null,
                 }
             };
@@ -84,11 +83,7 @@ namespace DrCell_V01.Services
 
         public async Task<ProductoDto?> GetByIdWithVarianteAsync(int id)
         {
-            //var producto = await _context.Productos
-            //    .Include(p => p.Variantes)
-            //    .AsNoTracking()
-            //    .FirstOrDefaultAsync(p => p.Id == id);
-            //return _mapper.Map<ProductoDto>(producto);
+         
             var producto = await _context.Productos
        .Include(p => p.Variantes)
        .FirstOrDefaultAsync(p => p.Id == id);

@@ -3,7 +3,7 @@ using DrCell_V01.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-
+using Microsoft.AspNetCore.RateLimiting;
 namespace DrCell_V01.Controllers
 {
     /// <summary>
@@ -11,6 +11,7 @@ namespace DrCell_V01.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    [EnableRateLimiting("AuthPolicy")]
     public class ReparacionesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

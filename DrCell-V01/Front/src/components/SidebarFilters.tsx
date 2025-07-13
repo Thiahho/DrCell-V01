@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { X } from 'lucide-react';
 
 interface SidebarFiltersProps {
   marcas: string[];
@@ -75,7 +75,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
             onClick={onClear}
             aria-label="Limpiar filtros"
           >
-            <XMarkIcon className="h-4 w-4" />
+            <X className="h-4 w-4" />
             Limpiar
           </button>
         )}
@@ -175,7 +175,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
                     className="hover:bg-blue-200 rounded-full p-0.5"
                     aria-label={`Quitar filtro ${marca}`}
                   >
-                    <XMarkIcon className="h-3 w-3" />
+                    <X className="h-3 w-3" />
                   </button>
                 </span>
               ))}
@@ -187,7 +187,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
                     className="hover:bg-green-200 rounded-full p-0.5"
                     aria-label={`Quitar filtro ${cat}`}
                   >
-                    <XMarkIcon className="h-3 w-3" />
+                    <X className="h-3 w-3" />
                   </button>
                 </span>
               ))}

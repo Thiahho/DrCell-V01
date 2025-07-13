@@ -13,16 +13,15 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true
+  withCredentials: true // 🔑 Crítico: Permite envío de cookies httpOnly
 });
 
-// Interceptor para agregar el token a todas las peticiones
+// 🔑 Interceptor para manejar autenticación con cookies
+// Ya no necesitamos agregar tokens manualmente - las cookies se envían automáticamente
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // Las cookies httpOnly se envían automáticamente
+    // No necesitamos hacer nada aquí
     return config;
   },
   (error) => {
@@ -33,10 +32,20 @@ api.interceptors.request.use(
 // Interceptor para manejar errores de autenticación
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
+      // Limpiar cualquier token que pueda estar en localStorage (migración)
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      
+      // Intentar cerrar sesión para limpiar cookies
+      try {
+        await api.post('/Admin/logout');
+      } catch (logoutError) {
+        // Ignorar errores de logout
+      }
+      
+      // Redirigir al login
       window.location.href = '/login';
     }
     return Promise.reject(error);

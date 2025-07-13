@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { PencilIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { Edit, Trash2, Plus } from 'lucide-react';
 import axios from '@/lib/axios';
 import { toast } from 'sonner';
 import VarianteForm from '@/components/admin/VarianteForm';
@@ -175,7 +175,7 @@ const Variantes = () => {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold">Variantes del Producto</h2>
             <Button onClick={() => setIsCreateModalOpen(true)}>
-              <PlusIcon className="h-5 w-5 mr-2" />
+              <Plus className="h-5 w-5 mr-2" />
               Nueva Variante
             </Button>
           </div>
@@ -234,7 +234,7 @@ const Variantes = () => {
                           onClick={() => handleEdit(variante)}
                           className="text-blue-600 hover:text-blue-900 mr-2"
                         >
-                          <PencilIcon className="h-5 w-5" />
+                          <Edit className="h-5 w-5" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -242,7 +242,7 @@ const Variantes = () => {
                           onClick={() => handleDelete(variante)}
                           className="text-red-600 hover:text-red-900"
                         >
-                          <TrashIcon className="h-5 w-5" />
+                          <Trash2 className="h-5 w-5" />
                         </Button>
                       </td>
                     </tr>

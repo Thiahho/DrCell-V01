@@ -16,7 +16,6 @@ namespace DrCell_V01.Data
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Productos> Productos { get; set; }
         public DbSet<ProductosVariantes> ProductosVariantes { get; set; }
-        //public DbSet<Auth> Auth { get; set; }
 
         /// VISTAS
         public DbSet<vCelularesMBP> vCelularesMBP => Set<vCelularesMBP>();

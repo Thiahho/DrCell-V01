@@ -1,21 +1,21 @@
 import React from 'react';
 import {
-  HomeIcon,
-  ClipboardIcon,
-  UsersIcon,
-  CubeIcon,
-  UserCircleIcon,
-  Bars3Icon,
-  XMarkIcon,
-  ArrowLeftStartOnRectangleIcon,
-} from '@heroicons/react/24/outline';
+  Home,
+  Clipboard,
+  Users,
+  Package,
+  User,
+  Menu,
+  X,
+  LogOut,
+} from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
 const links = [
-  { to: '/admin', label: 'Dashboard', icon: HomeIcon },
-  { to: '/admin/productos', label: 'Productos', icon: CubeIcon },
-  { to: '/admin/variantes', label: 'Variantes', icon: CubeIcon },
-  { to: '/admin/reparaciones', label: 'Reparaciones', icon: CubeIcon },
+  { to: '/admin', label: 'Dashboard', icon: Home },
+  { to: '/admin/productos', label: 'Productos', icon: Package },
+  { to: '/admin/variantes', label: 'Variantes', icon: Package },
+  { to: '/admin/reparaciones', label: 'Reparaciones', icon: Package },
 ];
 
 interface SidebarAdminProps {
@@ -87,7 +87,7 @@ const SidebarAdmin: React.FC<SidebarAdminProps> = ({ open, setOpen, isMobile }) 
               className="p-2 rounded hover:bg-gray-100 lg:hidden"
               aria-label="Close sidebar"
             >
-              <XMarkIcon className="h-6 w-6 text-gray-600" />
+              <X className="h-6 w-6 text-gray-600" />
             </button>
           )}
           
@@ -98,7 +98,7 @@ const SidebarAdmin: React.FC<SidebarAdminProps> = ({ open, setOpen, isMobile }) 
               className="p-2 rounded hover:bg-gray-100 hidden lg:block"
               aria-label="Toggle sidebar"
             >
-              <Bars3Icon className="h-6 w-6 text-gray-600" />
+              <Menu className="h-6 w-6 text-gray-600" />
             </button>
           )}
         </div>
@@ -139,7 +139,7 @@ const SidebarAdmin: React.FC<SidebarAdminProps> = ({ open, setOpen, isMobile }) 
             onClick={handleLogout}
             title={!open && !isMobile ? 'Logout' : undefined}
           >
-            <ArrowLeftStartOnRectangleIcon className="h-6 w-6 flex-shrink-0" />
+            <LogOut className="h-6 w-6 flex-shrink-0" />
             {(open || isMobile) && <span>Logout</span>}
           </button>
         </div>

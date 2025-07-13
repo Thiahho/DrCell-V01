@@ -4,11 +4,12 @@ using DrCell_V01.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.AspNetCore.RateLimiting;
 namespace DrCell_V01.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [EnableRateLimiting("AuthPolicy")]
     public class ModulosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -160,6 +161,7 @@ namespace DrCell_V01.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "ADMIN")]
+        [EnableRateLimiting("CriticalPolicy")]
         public async Task<IActionResult> DeleteModulo(int id)
         {
             try
@@ -184,6 +186,7 @@ namespace DrCell_V01.Controllers
 
         [HttpPost("create")]
         [Authorize(Roles = "ADMIN")]
+        [EnableRateLimiting("CriticalPolicy")]
         public async Task<IActionResult> CreateModulo([FromBody] Modulos modulo)
         {
             try

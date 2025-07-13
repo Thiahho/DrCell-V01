@@ -45,25 +45,7 @@ const Footer: React.FC = () => {
             </p>
           </div>
 
-          {/* Columna 2 - Mi Cuenta
-          <div>
-            <h5 className="font-semibold text-lg mb-4">Mi Cuenta</h5>
-            <ul className="space-y-2">
-              <li>
-                <a href="#" className="text-white/70 hover:text-white transition-colors duration-200 text-sm">
-                  Login
-                </a>
-              </li>
-              <li>
-                <a href="/TerminosYCondiciones" className="text-white/70 hover:text-white transition-colors duration-200 text-sm">
-                  Terminos y Condiciones
-                </a>
-              </li>
-              
-             
-            </ul>
-          </div>
-          */}
+       
           {/* Columna 3 - Soporte */}
           <div>
             <h5 className="font-semibold text-lg mb-4">Soporte</h5>
@@ -100,11 +82,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/*<div className="w-full flex justify-center my-8">
-          <div className="bg-white rounded-3xl shadow-lg px-8 py-6 max-w-4xl w-full flex flex-col items-center">
-            <img src="/img/marcas.png" alt="Trabajamos con estas marcas" className="w-full h-auto object-contain" />
-          </div>
-        </div>*/}
+        
 
         <div className="border-t border-white/20 mb-6"></div>
 

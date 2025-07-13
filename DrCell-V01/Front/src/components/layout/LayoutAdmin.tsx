@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bars3Icon } from '@heroicons/react/24/outline';
+import { Menu } from 'lucide-react';
 import SidebarAdmin from '../admin/SidebarAdmin';
 import Navbar from '../Navbar';
 import { Outlet } from 'react-router-dom';
@@ -39,7 +39,7 @@ const LayoutAdmin: React.FC = () => {
           className="p-2 rounded-md text-gray-700 hover:text-[#17436b] hover:bg-gray-100 transition-colors duration-200"
           aria-label="Toggle mobile menu"
         >
-          <Bars3Icon className="h-6 w-6" />
+          <Menu className="h-6 w-6" />
         </button>
       </div>
 

@@ -1,55 +1,233 @@
 using DrCell_V01.Data;
 using DrCell_V01.Data.Modelos;
+using DrCell_V01.Middleware;
 using DrCell_V01.Services;
 using DrCell_V01.Services.Interface;
+using DrCell_V01.HealthChecks;
+using DrCell_V01.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using Swashbuckle.AspNetCore.SwaggerUI;
+using System.Reflection;
 using System.Text;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using System.Text.Json;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
 try
 {
-    //Console.WriteLine("🟢 Iniciando configuración...");
     // 🔑 Permitir lectura de variables desde .env y entorno
-    //Console.WriteLine("🌍 Entorno: " + builder.Environment.EnvironmentName);
     builder.Configuration
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables(); // <--- CLAVE PARA LEER .env
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+        .AddEnvironmentVariables();
 
-    // 1. Configuración del DbContext
-    //  builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    //      options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    // 🔒 OBTENER VARIABLES DE ENTORNO DE FORMA SEGURA
+    var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") 
+        ?? builder.Configuration.GetConnectionString("DefaultConnection");
+    
+    var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") 
+        ?? builder.Configuration["JWTKey:Secret"];
+    
+    var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
+        ?? builder.Configuration["JWTKey:ValidIssuer"];
+    
+    var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") 
+        ?? builder.Configuration["JWTKey:ValidAudience"];
+    
+    var corsOriginsEnv = Environment.GetEnvironmentVariable("CORS_ORIGINS");
+    var corsOrigins = !string.IsNullOrEmpty(corsOriginsEnv) 
+        ? corsOriginsEnv.Split(',', StringSplitOptions.RemoveEmptyEntries)
+        : builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>();
+
+    // ✅ VALIDACIÓN DE VARIABLES CRÍTICAS EN PRODUCCIÓN
+    if (builder.Environment.IsProduction())
     {
-
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         if (string.IsNullOrEmpty(connectionString))
         {
-            throw new InvalidOperationException("No se encontró la cadena de conexión DefaultConnection");
+            throw new InvalidOperationException("🔴 CRÍTICO: DATABASE_CONNECTION_STRING es requerida en producción");
         }
+        
+        if (string.IsNullOrEmpty(jwtSecret))
+        {
+            throw new InvalidOperationException("🔴 CRÍTICO: JWT_SECRET es requerida en producción");
+        }
+        
+        if (string.IsNullOrEmpty(jwtIssuer))
+        {
+            throw new InvalidOperationException("🔴 CRÍTICO: JWT_ISSUER es requerida en producción");
+        }
+        
+        if (string.IsNullOrEmpty(jwtAudience))
+        {
+            throw new InvalidOperationException("🔴 CRÍTICO: JWT_AUDIENCE es requerida en producción");
+        }
+        
+        if (corsOrigins == null || corsOrigins.Length == 0)
+        {
+            throw new InvalidOperationException("🔴 CRÍTICO: CORS_ORIGINS es requerida en producción");
+        }
+
+        // Validar longitud mínima del JWT Secret en producción
+        if (jwtSecret.Length < 32)
+        {
+            throw new InvalidOperationException("🔴 CRÍTICO: JWT_SECRET debe tener al menos 32 caracteres en producción");
+        }
+    }
+
+    // 📝 Configurar Serilog desde appsettings.json
+    builder.Host.UseSerilog((context, configuration) =>
+    {
+        configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
+            .Enrich.WithProperty("Application", "DrCell-API")
+            .WriteTo.Console()
+            .WriteTo.File("logs/drcell-.log", rollingInterval: RollingInterval.Day);
+    });
+
+    // 📝 Logging temprano para debugging (SIN MOSTRAR CREDENCIALES)
+    Log.Information($"🌍 Entorno: {builder.Environment.EnvironmentName}");
+    Log.Information($"🔗 Conexión BD: {(!string.IsNullOrEmpty(connectionString) ? "✅ Configurada" : "❌ No configurada")}");
+    Log.Information($"🔑 JWT Secret: {(!string.IsNullOrEmpty(jwtSecret) ? "✅ Configurado" : "❌ No configurado")}");
+    Log.Information($"🌐 CORS Origins: {(corsOrigins?.Length > 0 ? string.Join(", ", corsOrigins) : "❌ No configurados")}");
+
+    // 1. Configuración del DbContext
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    {
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException("🔴 No se encontró la cadena de conexión");
+        }
+        
         options.UseNpgsql(connectionString);
+
+        // Solo en Development
+        if (builder.Environment.IsDevelopment())
+        {
+            options.EnableSensitiveDataLogging();
+            options.EnableDetailedErrors();
+        }
     });
 
     // 2. Configuración de CORS dinámica
     builder.Services.AddCors(options =>
     {
-        var allowedOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>()
-            ?? new[] { "http://localhost:3000" };
+        var environment = builder.Environment.EnvironmentName;
 
-        options.AddPolicy("ProductionCORS", policy =>
+        // Validar que existan orígenes configurados
+        if (corsOrigins == null || corsOrigins.Length == 0)
         {
-            policy.WithOrigins(allowedOrigins)
-                  .AllowAnyMethod()
-                  .AllowAnyHeader()
-                  .AllowCredentials();
-        });
+            throw new InvalidOperationException("🔴 CORS:AllowedOrigins debe estar configurado");
+        }
+
+        // Validar que los orígenes sean URLs válidas
+        foreach (var origin in corsOrigins)
+        {
+            if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+            {
+                throw new InvalidOperationException($"🔴 URL de origen inválida: {origin}");
+            }
+        }
+
+        if (environment == "Development")
+        {
+            options.AddPolicy("DevCORS", policy =>
+            {
+                policy.WithOrigins(corsOrigins)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            });
+        }
+        else
+        {
+            options.AddPolicy("ProductionCORS", policy =>
+            {
+                policy.WithOrigins(corsOrigins)
+                      .WithMethods("GET", "POST", "PUT", "DELETE")
+                      .WithHeaders("Accept", "Authorization", "Content-Type", "X-Requested-With", "X-API-Key")
+                      .AllowCredentials()
+                      .SetIsOriginAllowed(origin => corsOrigins.Contains(origin));
+            });
+        }
     });
 
-    // 3. Configuración de autenticación JWT
+    var corsPolicy = builder.Environment.IsDevelopment() ? "DevCORS" : "ProductionCORS";
+
+    // 3. RATE LIMITING
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        {
+            return RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: context.User.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "default",
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    AutoReplenishment = true,
+                    PermitLimit = builder.Environment.IsDevelopment() ? 100 : 10,
+                    Window = TimeSpan.FromMinutes(1)
+                });
+        });
+
+        options.AddFixedWindowLimiter("AuthPolicy", options =>
+        {
+            options.PermitLimit = builder.Environment.IsDevelopment() ? 20 : 5;
+            options.Window = TimeSpan.FromMinutes(1);
+            options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            options.QueueLimit = 2;
+        });
+
+        options.AddFixedWindowLimiter("ApiPolicy", options =>
+        {
+            options.PermitLimit = builder.Environment.IsDevelopment() ? 200 : 50;
+            options.Window = TimeSpan.FromMinutes(1);
+            options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            options.QueueLimit = 5;
+        });
+
+        options.AddFixedWindowLimiter("CriticalPolicy", options =>
+        {
+            options.PermitLimit = builder.Environment.IsDevelopment() ? 50 : 10;
+            options.Window = TimeSpan.FromMinutes(1);
+            options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            options.QueueLimit = 1;
+        });
+
+        options.OnRejected = async (context, token) =>
+        {
+            context.HttpContext.Response.StatusCode = 429;
+
+            context.HttpContext.Response.Headers["Retry-After"] = "60";
+            context.HttpContext.Response.Headers["X-RateLimit-Limit"] = "100";
+            context.HttpContext.Response.Headers["X-RateLimit-Remaining"] = "0";
+            context.HttpContext.Response.Headers["X-RateLimit-Reset"] = DateTimeOffset.UtcNow.AddMinutes(1).ToUnixTimeSeconds().ToString();
+
+            var response = new
+            {
+                error = "Rate limit exceeded",
+                message = "Too many requests. Please try again later.",
+                retryAfter = 60
+            };
+
+            await context.HttpContext.Response.WriteAsync(
+                System.Text.Json.JsonSerializer.Serialize(response),
+                cancellationToken: token);
+        };
+    });
+
+    // 4. Configuración de autenticación JWT
     builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -59,8 +237,6 @@ try
     .AddJwtBearer(options =>
     {
         options.SaveToken = true;
-
-        // Seguridad: solo forzar HTTPS en producción
         options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
 
         options.TokenValidationParameters = new TokenValidationParameters
@@ -71,11 +247,10 @@ try
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ClockSkew = TimeSpan.Zero,
-            ValidIssuer = builder.Configuration["JWTKey:ValidIssuer"],
-            ValidAudience = builder.Configuration["JWTKey:ValidAudience"],
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["JWTKey:Secret"]
-                ?? throw new InvalidOperationException("JWT Secret not configured")))
+                Encoding.UTF8.GetBytes(jwtSecret ?? throw new InvalidOperationException("🔴 JWT Secret no configurado")))
         };
 
         options.Events = new JwtBearerEvents
@@ -91,16 +266,18 @@ try
         };
     });
 
-    // 4. Configuración de Cookies seguras
+    // 5. Configuración de Cookies seguras
     builder.Services.Configure<CookiePolicyOptions>(options =>
     {
         options.CheckConsentNeeded = context => true;
         options.MinimumSameSitePolicy = SameSiteMode.Strict;
         options.HttpOnly = HttpOnlyPolicy.Always;
-        options.Secure = CookieSecurePolicy.Always;
+        options.Secure = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
     });
 
-    // 5. Configuración de sesión
+    // 6. Configuración de sesión
     builder.Services.AddDistributedMemoryCache();
     builder.Services.AddSession(options =>
     {
@@ -111,17 +288,71 @@ try
         options.Cookie.SameSite = SameSiteMode.Strict;
     });
 
-    // 5.1. Configuración de caché en memoria
     builder.Services.AddMemoryCache();
 
-    // 6. Servicios de la aplicación
+    // 7. Servicios de la aplicación
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddAuthorization();
     builder.Services.AddAutoMapper(typeof(Program));
-    builder.Services.AddSwaggerGen();
 
-    // 7. Inyección de dependencias personalizadas
+    // 8. Configuración de Swagger
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = "DrCell API",
+            Version = "v1",
+            Description = "API para la aplicación DrCell",
+            Contact = new OpenApiContact
+            {
+                Name = "DrCell",
+                Email = "info@drcell.com",
+            }
+        });
+
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "JWT Authorization header using the Bearer scheme",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "Bearer"
+        });
+
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[]{}
+            }
+        });
+
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        if (File.Exists(xmlPath))
+        {
+            c.IncludeXmlComments(xmlPath);
+        }
+        c.DocumentFilter<SwaggerSecurityFilter>();
+    });
+
+    // 9. Configuración de Health Checks
+    builder.Services.AddHealthChecks()
+        .AddCheck("self", () => HealthCheckResult.Healthy("API is running"))
+        .AddDbContextCheck<ApplicationDbContext>("database")
+        .AddCheck<MemoryHealthCheck>("memory")
+        .AddCheck<DiskSpaceHealthCheck>("disk")
+        .AddCheck<DatabaseConnectionHealthCheck>("database_connection");
+
+    // 10. Inyección de dependencias personalizadas
     builder.Services.AddScoped<IUsuarioService, UsuarioService>();
     builder.Services.AddScoped<ICelularesService, EquiposService>();
     builder.Services.AddScoped<IPinesService, PinesService>();
@@ -132,33 +363,173 @@ try
 
     var app = builder.Build();
 
-    // 8. Middleware
+    // 11. Configuración de Swagger por entorno
+    var enableSwagger = builder.Configuration.GetValue<bool>("Swagger:EnabledInProduction", false);
+    var swaggerPassword = Environment.GetEnvironmentVariable("SWAGGER_PASSWORD") 
+        ?? builder.Configuration.GetValue<string>("Swagger:Password");
+
+    // Logger para información de inicio
+    Log.Information($"🌍 Entorno: {app.Environment.EnvironmentName}");
+    Log.Information($"📚 Swagger habilitado: {(app.Environment.IsDevelopment() || (app.Environment.IsStaging() && enableSwagger))}");
+
     if (app.Environment.IsDevelopment())
     {
         app.UseDeveloperExceptionPage();
         app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "DrCell API v1");
+            c.RoutePrefix = "swagger";
+            c.DocumentTitle = "DrCell API - Development";
+            c.DefaultModelsExpandDepth(-1);
+            c.DocExpansion(DocExpansion.None);
+        });
+    }
+    else if (app.Environment.IsStaging() && enableSwagger)
+    {
+        if (string.IsNullOrEmpty(swaggerPassword))
+        {
+            Log.Warning("⚠️ ADVERTENCIA: Swagger habilitado en Staging sin contraseña configurada");
+        }
+
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "DrCell API v1 - Staging");
+            c.RoutePrefix = "docs";
+            c.DocumentTitle = "DrCell API - Staging";
+            c.DefaultModelsExpandDepth(-1);
+            c.DocExpansion(DocExpansion.None);
+        });
+
+        // Middleware para proteger Swagger en staging
+        app.UseWhen(context => context.Request.Path.StartsWithSegments("/docs") ||
+                              context.Request.Path.StartsWithSegments("/swagger"),
+            appBuilder =>
+            {
+                appBuilder.Use(async (context, next) =>
+                {
+                    if (!context.Request.Headers.ContainsKey("Authorization"))
+                    {
+                        context.Response.StatusCode = 401;
+                        context.Response.Headers["WWW-Authenticate"] = "Basic realm=\"Swagger Documentation\"";
+                        await context.Response.WriteAsync("Unauthorized access to API documentation");
+                        return;
+                    }
+
+                    var authHeader = context.Request.Headers["Authorization"].ToString();
+                    if (authHeader.StartsWith("Basic "))
+                    {
+                        var encodedCredentials = authHeader.Substring("Basic ".Length);
+                        var credentials = Encoding.UTF8.GetString(Convert.FromBase64String(encodedCredentials));
+                        var parts = credentials.Split(':');
+
+                        if (parts.Length == 2 && parts[0] == "admin" && parts[1] == swaggerPassword)
+                        {
+                            await next();
+                            return;
+                        }
+                    }
+
+                    context.Response.StatusCode = 401;
+                    await context.Response.WriteAsync("Invalid credentials");
+                });
+            });
     }
     else
     {
-        app.UseHttpsRedirection(); // Redirección a HTTPS en producción
+        // 🔒 Producción: Swagger COMPLETAMENTE DESHABILITADO
+        app.Use(async (context, next) =>
+        {
+            if (context.Request.Path.StartsWithSegments("/swagger") ||
+                context.Request.Path.StartsWithSegments("/docs"))
+            {
+                context.Response.StatusCode = 404;
+                await context.Response.WriteAsync("Not Found");
+                return;
+            }
+            await next();
+        });
     }
 
+    // 12. Configuración de Health Checks Endpoints
+    app.MapHealthChecks("/health", new HealthCheckOptions
+    {
+        ResponseWriter = async (context, report) =>
+        {
+            context.Response.ContentType = "application/json";
+
+            var result = new
+            {
+                status = report.Status.ToString(),
+                timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                totalDuration = report.TotalDuration.TotalMilliseconds,
+                entries = report.Entries.Select(e => new
+                {
+                    name = e.Key,
+                    status = e.Value.Status.ToString(),
+                    duration = e.Value.Duration.TotalMilliseconds,
+                    description = e.Value.Description,
+                    exception = e.Value.Exception?.Message
+                })
+            };
+
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
+        }
+    });
+
+    // Health check simplificado para load balancers
+    app.MapHealthChecks("/health/live", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("live") || check.Name == "self"
+    });
+
+    // Health check completo para monitoreo
+    app.MapHealthChecks("/health/ready", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready") || check.Name == "database"
+    });
+
+    // 13. Configuración de middleware pipeline
+    app.UseRateLimiter();
     app.UseStaticFiles();
     app.UseRouting();
-    app.UseCors("ProductionCORS");
+    app.UseCors(corsPolicy);
     app.UseCookiePolicy();
     app.UseSession();
+    
+    // 🔑 Middleware personalizado para JWT en cookies
+    app.UseMiddleware<JwtCookieMiddleware>();
+    
     app.UseAuthentication();
     app.UseAuthorization();
 
-    app.MapControllers();
-    app.Run();
+    // ✅ Agregar logging de requests con Serilog
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+        options.GetLevel = (httpContext, elapsed, ex) => ex != null
+            ? Serilog.Events.LogEventLevel.Error
+            : httpContext.Response.StatusCode > 499
+                ? Serilog.Events.LogEventLevel.Error
+                : Serilog.Events.LogEventLevel.Information;
+    });
 
+    app.MapControllers();
+
+    // Log final antes de iniciar (SIN MOSTRAR CREDENCIALES)
+    Log.Information("🚀 DrCell API iniciada correctamente");
+    Log.Information($"🔗 Base de datos: {(!string.IsNullOrEmpty(connectionString) ? "✅ Conectada" : "❌ Error")}");
+    Log.Information($"🔑 Autenticación: {(!string.IsNullOrEmpty(jwtSecret) ? "✅ Configurada" : "❌ Error")}");
+
+    app.Run();
 }
 catch (Exception ex)
 {
-   // Console.WriteLine("❌ ERROR FATAL AL INICIAR LA APP:");
-   // Console.WriteLine(ex.Message);
-   // Console.WriteLine(ex.StackTrace);
+    Log.Fatal(ex, "❌ ERROR FATAL AL INICIAR LA APP");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
 }

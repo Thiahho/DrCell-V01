@@ -300,7 +300,7 @@ const ConsultaReparacionSection: React.FC = () => {
     }
 
     // Construir el mensaje de WhatsApp
-    let mensaje = `🔧 *Consulta de Reparación - ${WHATSAPP_CONFIG.COMPANY_NAME}*\n\n`;
+    let mensaje = `🔧 *- ${WHATSAPP_CONFIG.COMPANY_NAME}*\n\n`;
     mensaje += `📱 *Dispositivo:* ${varianteSeleccionada.marca} ${varianteSeleccionada.modelo}\n`;
     
     if (varianteSeleccionada.colormodulo) {
@@ -329,8 +329,6 @@ const ConsultaReparacionSection: React.FC = () => {
       mensaje += `• Sin presupuesto disponible\n`;
     }
     
-    mensaje += `\n📞 *¿Te interesa alguno de estos servicios?*\n`;
-    mensaje += `¡Contáctanos para más información!`;
 
     // Codificar el mensaje para URL
     const mensajeCodificado = encodeURIComponent(mensaje);
@@ -348,22 +346,6 @@ const ConsultaReparacionSection: React.FC = () => {
       
       {/* Buscador en tiempo real */}
       <div className="mb-6 buscador-container">
-        {/*<label className="block text-sm font-semibold text-gray-700 mb-2">Buscar dispositivo</label>
-        <div className="relative">
-          <Input
-            placeholder="Escribe marca o modelo (ej: Samsung Galaxy, iPhone)..."
-            value={terminoBusqueda}
-            onChange={(e) => setTerminoBusqueda(e.target.value)}
-            onFocus={() => setMostrarDropdown(true)}
-            className="w-full pr-10"
-          />
-          {buscando && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-            </div>
-          )}
-        </div>
-        */}
         {/* Dropdown con resultados de búsqueda */}
         {mostrarDropdown && (resultadosBusqueda.length > 0 || terminoBusqueda.trim().length >= 2) && (
           <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -609,36 +591,6 @@ const ConsultaReparacionSection: React.FC = () => {
           </div>
         )}
 
-        {/* Mostrar todos los registros disponibles 
-        {todosLosRegistros.length > 0 && (
-          <div className="bg-green-50 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-green-800 mb-4">
-              Variantes disponibles ({todosLosRegistros.length})
-            </h3>
-            <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto">
-              {todosLosRegistros.map((registro, index) => (
-                <div key={index} className="bg-white rounded-lg p-3 border border-green-200">
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm">
-                      <span className="font-medium">{registro.marca} {registro.modelo}</span>
-                      {registro.colormodulo && <span className="text-gray-600 ml-2">• {registro.colormodulo}</span>}
-                      {registro.tipo && <span className="text-gray-600 ml-2">• {registro.tipo}</span>}
-                      {registro.version && <span className="text-gray-600 ml-2">• {registro.version}</span>}
-                      <span className="text-gray-600 ml-2">• {registro.marco ? 'Con marco' : 'Sin marco'}</span>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {registro.arreglomodulo && <span className="text-green-600 mr-2">M:${registro.arreglomodulo}</span>}
-                      {registro.arreglobat && <span className="text-green-600 mr-2">B:${registro.arreglobat}</span>}
-                      {registro.arreglopin && <span className="text-green-600">P:${registro.arreglopin}</span>}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        */}
-       
       </form>
     </div>
   );

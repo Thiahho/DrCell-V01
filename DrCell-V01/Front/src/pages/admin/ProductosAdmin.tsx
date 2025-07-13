@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { PencilIcon, TrashIcon, PlusIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { Edit, Trash2, Plus, AlertTriangle } from 'lucide-react';
 import axios from '@/lib/axios';
 import ProductForm from '@/components/admin/ProductForm';
 import EditProductForm from '@/components/admin/EditProductForm';
@@ -80,7 +80,7 @@ const ProductosAdmin = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Gestión de Productos</h1>
         <Button onClick={() => setIsCreateModalOpen(true)}>
-          <PlusIcon className="h-5 w-5 mr-2" />
+          <Plus className="h-5 w-5 mr-2" />
           Nuevo Producto
         </Button>
       </div>
@@ -127,7 +127,7 @@ const ProductosAdmin = () => {
                     onClick={() => handleEdit(producto)}
                     className="text-blue-600 hover:text-blue-900 mr-2"
                   >
-                    <PencilIcon className="h-5 w-5" />
+                    <Edit className="h-5 w-5" />
                   </Button>
                   <Button
                     variant="ghost"
@@ -135,7 +135,7 @@ const ProductosAdmin = () => {
                     onClick={() => handleDelete(producto)}
                     className="text-red-600 hover:text-red-900"
                   >
-                    <TrashIcon className="h-5 w-5" />
+                    <Trash2 className="h-5 w-5" />
                   </Button>
                 </td>
               </tr>
@@ -167,7 +167,7 @@ const ProductosAdmin = () => {
           <AlertDialogHeader className="bg-red-50 -mx-6 -mt-6 px-6 py-4 border-b border-red-200">
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0">
-                <ExclamationTriangleIcon className="h-8 w-8 text-red-600" />
+                <AlertTriangle className="h-8 w-8 text-red-600" />
               </div>
               <div>
                 <AlertDialogTitle className="text-xl font-bold text-red-800">
@@ -206,7 +206,7 @@ const ProductosAdmin = () => {
             {/* Advertencia */}
             <div className="bg-red-50 p-4 rounded-lg border border-red-200">
               <div className="flex items-start gap-3">
-                <ExclamationTriangleIcon className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-red-800 mb-1">
                     ⚠️ Acción Irreversible

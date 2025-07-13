@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Bars3Icon, XMarkIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { Menu, X, Filter } from 'lucide-react';
 import axios from '@/lib/axios';
 import { useNavigate } from 'react-router-dom';
 import SidebarFilters from './SidebarFilters';
@@ -95,7 +95,7 @@ const Shop: React.FC = () => {
           onClick={handleSidebarToggle}
           className="lg:hidden flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
         >
-          <FunnelIcon className="h-5 w-5" />
+          <Filter className="h-5 w-5" />
           <span className="hidden sm:inline">Filtros</span>
         </button>
       </div>
@@ -131,7 +131,7 @@ const Shop: React.FC = () => {
                   onClick={handleSidebarClose}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <XMarkIcon className="h-6 w-6" />
+                  <X className="h-6 w-6" />
                 </button>
               </div>
               <div className="p-4 overflow-y-auto h-full">

@@ -150,17 +150,13 @@ const AboutUs = () => {
               <li><strong className="font-semibold text-[#217AB6]">Diagnóstico claro:</strong> Te explicamos el problema sin tecnicismos innecesarios.</li>
               <li><strong className="font-semibold text-[#217AB6]">Garantía real:</strong> 15 días en todas las reparaciones.</li>
             </ul>
-            {/* <button className="mt-8 bg-[#17436b] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#17436b] transition duration-300 transform hover:scale-105">
-              Contactanos &rarr;
-            </button> */}
+       
           </div>
         </div>
 
         {/* Seccion Servicios */}
         <div className="text-center mb-16">
-          {/* <h3 className="text-[#217AB6] font-semibold uppercase tracking-wider">Ofrecemos</h3> */}
           <h2 className="text-4xl font-bold text-[#17436b] mt-2 mb-4">Conoce Nuestros Servicios</h2>
-          {/* <p className="text-gray-600 italic">*(Enlace a otra página)*</p> */}
         </div>
 
         {/* Seccion Por que elegirnos */}

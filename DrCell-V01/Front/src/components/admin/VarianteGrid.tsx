@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { PencilIcon, TrashIcon, CpuChipIcon, CurrencyDollarIcon, CubeIcon } from '@heroicons/react/24/outline';
+import { Edit, Trash2, Cpu, DollarSign, Package, Pencil } from 'lucide-react';
 
 interface Variante {
   id: number;
@@ -23,7 +23,7 @@ const VarianteGrid: React.FC<VarianteGridProps> = ({ variantes, onEdit, onDelete
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center">
         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-          <CpuChipIcon className="w-8 h-8 text-gray-400" />
+          <Cpu className="w-8 h-8 text-gray-400" />
         </div>
         <h3 className="text-lg font-semibold text-gray-700 mb-2">No hay variantes</h3>
         <p className="text-gray-500 max-w-md">
@@ -49,14 +49,14 @@ const VarianteGrid: React.FC<VarianteGridProps> = ({ variantes, onEdit, onDelete
           </div>
           <div className="flex flex-wrap gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <CurrencyDollarIcon className="w-4 h-4 text-green-600" />
+              <DollarSign className="w-4 h-4 text-green-600" />
               <span className="text-gray-600">Total:</span>
               <span className="font-semibold text-green-600">
                 ${variantes.reduce((sum, v) => sum + v.precio, 0).toLocaleString()}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <CubeIcon className="w-4 h-4 text-blue-600" />
+              <Package className="w-4 h-4 text-blue-600" />
               <span className="text-gray-600">Stock:</span>
               <span className="font-semibold text-blue-600">
                 {variantes.reduce((sum, v) => sum + v.stock, 0)}
@@ -97,7 +97,7 @@ const VarianteGrid: React.FC<VarianteGridProps> = ({ variantes, onEdit, onDelete
                     className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                     title="Editar variante"
                   >
-                    <PencilIcon className="h-4 w-4" />
+                    <Edit className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
@@ -106,7 +106,7 @@ const VarianteGrid: React.FC<VarianteGridProps> = ({ variantes, onEdit, onDelete
                     className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                     title="Eliminar variante"
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -117,7 +117,7 @@ const VarianteGrid: React.FC<VarianteGridProps> = ({ variantes, onEdit, onDelete
               {/* Especificaciones */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <CpuChipIcon className="w-3 h-3" />
+                  <Cpu className="w-3 h-3" />
                   <span>Especificaciones</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
@@ -135,7 +135,7 @@ const VarianteGrid: React.FC<VarianteGridProps> = ({ variantes, onEdit, onDelete
               {/* Información comercial */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <CurrencyDollarIcon className="w-3 h-3" />
+                  <DollarSign className="w-3 h-3" />
                   <span>Comercial</span>
                 </div>
                 <div className="space-y-2">
@@ -256,7 +256,7 @@ const VarianteGrid: React.FC<VarianteGridProps> = ({ variantes, onEdit, onDelete
                           onClick={() => onEdit(variante)}
                           className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                         >
-                          <PencilIcon className="h-4 w-4" />
+                          <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -264,7 +264,7 @@ const VarianteGrid: React.FC<VarianteGridProps> = ({ variantes, onEdit, onDelete
                           onClick={() => onDelete(variante)}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
-                          <TrashIcon className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </td>

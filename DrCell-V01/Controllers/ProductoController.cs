@@ -5,11 +5,13 @@ using DrCell_V01.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace DrCell_V01.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableRateLimiting("AuthPolicy")]
     public class ProductoController : ControllerBase
     {
         private readonly IProductoService _productoService;
@@ -159,6 +161,7 @@ namespace DrCell_V01.Controllers
 
         [Authorize(Roles = "ADMIN")]
         [HttpPost]
+        [EnableRateLimiting("CriticalPolicy")]
         public async Task<ActionResult<ProductoDto>> Create([FromBody] ProductoDto producto)
         {
             try
@@ -208,6 +211,7 @@ namespace DrCell_V01.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "ADMIN")]
+        [EnableRateLimiting("CriticalPolicy")]
         public async Task<IActionResult> Delete(int id)
         {
             try

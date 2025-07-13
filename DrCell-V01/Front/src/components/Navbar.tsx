@@ -2,17 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
-  HomeIcon,
-  CubeIcon,
-  UsersIcon,
-  ClipboardIcon,
-  UserCircleIcon,
-  ArrowLeftOnRectangleIcon,
-  Bars3Icon,
-  XMarkIcon,
-  ShoppingCartIcon,
-  QuestionMarkCircleIcon,
-} from '@heroicons/react/24/outline';
+  Home,
+  Package,
+  Users,
+  Clipboard,
+  User,
+  LogOut,
+  Menu,
+  X,
+  ShoppingCart,
+  HelpCircle,
+} from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 
 interface User {
@@ -112,26 +112,26 @@ const Navbar: React.FC = () => {
                       className="bg-[#17436b] text-white hover:bg-[#0d2b4a] text-sm px-3 py-2"
                       onClick={() => navigate('/admin')}
                     >
-                      <ClipboardIcon className="mr-1 h-4 w-4 lg:mr-2 lg:h-5 lg:w-5" />
-                      <span className="hidden lg:inline">Admin</span>
-                    </Button>
-                  )}
-                  
-                  <Button
-                    variant="outline"
-                    className="border-red-500 text-red-500 hover:bg-red-50 text-sm px-3 py-2"
-                    onClick={handleLogout}
-                  >
-                    <ArrowLeftOnRectangleIcon className="mr-1 h-4 w-4 lg:mr-2 lg:h-5 lg:w-5" />
-                    <span className="hidden lg:inline">Cerrar Sesión</span>
+                                          <Clipboard className="mr-1 h-4 w-4 lg:mr-2 lg:h-5 lg:w-5" />
+                    <span className="hidden lg:inline">Admin</span>
                   </Button>
-                </>
-              ) : (
+                )}
+                
                 <Button
-                  className="bg-[#17436b] text-white hover:bg-[#0d2b4a] text-sm px-3 py-2"
-                  onClick={() => navigate('/login')}
+                  variant="outline"
+                  className="border-red-500 text-red-500 hover:bg-red-50 text-sm px-3 py-2"
+                  onClick={handleLogout}
                 >
-                  <UserCircleIcon className="mr-1 h-4 w-4 lg:mr-2 lg:h-5 lg:w-5" />
+                  <LogOut className="mr-1 h-4 w-4 lg:mr-2 lg:h-5 lg:w-5" />
+                  <span className="hidden lg:inline">Cerrar Sesión</span>
+                </Button>
+              </>
+            ) : (
+              <Button
+                className="bg-[#17436b] text-white hover:bg-[#0d2b4a] text-sm px-3 py-2"
+                onClick={() => navigate('/login')}
+              >
+                <User className="mr-1 h-4 w-4 lg:mr-2 lg:h-5 lg:w-5" />
                   <span className="hidden lg:inline">Iniciar Sesión</span>
                 </Button>
               )}
@@ -145,9 +145,9 @@ const Navbar: React.FC = () => {
                 aria-label="Toggle mobile menu"
               >
                 {isMobileMenuOpen ? (
-                  <XMarkIcon className="h-6 w-6" />
+                  <X className="h-6 w-6" />
                 ) : (
-                  <Bars3Icon className="h-6 w-6" />
+                  <Menu className="h-6 w-6" />
                 )}
               </button>
             </div>
@@ -195,7 +195,7 @@ const Navbar: React.FC = () => {
                       }}
                       className="w-full text-left px-3 py-2 text-gray-700 hover:text-[#17436b] hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
                     >
-                      <ClipboardIcon className="mr-2 h-5 w-5" />
+                      <Clipboard className="mr-2 h-5 w-5" />
                       Admin
                     </button>
                   )}
@@ -204,7 +204,7 @@ const Navbar: React.FC = () => {
                     onClick={handleLogout}
                     className="w-full text-left px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors duration-200 flex items-center"
                   >
-                    <ArrowLeftOnRectangleIcon className="mr-2 h-5 w-5" />
+                    <LogOut className="mr-2 h-5 w-5" />
                     Cerrar Sesión
                   </button>
                 </>
@@ -216,7 +216,7 @@ const Navbar: React.FC = () => {
                   }}
                   className="w-full text-left px-3 py-2 text-gray-700 hover:text-[#17436b] hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
                 >
-                  <UserCircleIcon className="mr-2 h-5 w-5" />
+                  <User className="mr-2 h-5 w-5" />
                   Iniciar Sesión
                 </button>
               )}
